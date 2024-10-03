@@ -1,10 +1,6 @@
 # Define the default target now so that it is always the first target
 BUILD_TARGETS = \
-	libllava.a \
-	llama-baby-llama \
-	llama-batched \
-	llama-batched-bench \
-	llama-bench \
+	llmc \
 	llama-cli \
 	llama-convert-llama2c-to-ggml \
 	llama-embedding \
@@ -67,7 +63,7 @@ TEST_TARGETS = \
 # Legacy build targets that were renamed in #7809, but should still be removed when the project is cleaned
 LEGACY_TARGETS_CLEAN = main quantize quantize-stats perplexity imatrix embedding vdot q8dot convert-llama2c-to-ggml \
 	simple batched batched-bench save-load-state server gguf gguf-split eval-callback llama-bench libllava.a llava-cli baby-llama \
-	retrieval speculative infill tokenize parallel export-lora lookahead lookup passkey gritlm
+	retrieval speculative infill tokenize benchmark-matmult parallel export-lora lookahead lookup passkey gritlm
 
 # Legacy build targets that were renamed in #7809, but we want to build binaries that for them that output a deprecation warning if people try to use them.
 #  We don't want to clutter things too much, so we only build replacements for the most commonly used binaries.
@@ -1054,11 +1050,10 @@ ggml/src/ggml-alloc.o: \
 	$(CC)  $(CFLAGS)   -c $< -o $@
 
 ggml/src/ggml-backend.o: \
-	ggml/src/ggml-backend.cpp \
-	ggml/src/ggml-backend-impl.h \
+	ggml/src/ggml-backend.c \
 	ggml/include/ggml.h \
 	ggml/include/ggml-backend.h
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CC)  $(CFLAGS)   -c $< -o $@
 
 ggml/src/ggml-quants.o: \
 	ggml/src/ggml-quants.c \
@@ -1254,6 +1249,15 @@ clean:
 
 # Helper function that replaces .c, .cpp, and .cu file endings with .o:
 GET_OBJ_FILE = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cu,%.o,$(1))))
+
+LLMC_OBJ = $(patsubst %.cpp,%.o,$(wildcard llmc-src/*.cpp))
+LLMC_OBJ_ALL = $(OBJ_GGML) $(OBJ_LLAMA) $(OBJ_COMMON) $(LLMC_OBJ)
+LLMC_FLAGS = -lcurl -lreadline -lncurses
+
+llmc: llmc.cpp \
+	$(LLMC_OBJ_ALL)
+	$(CXX) $(CXXFLAGS) -c $< -o $(call GET_OBJ_FILE, $<)
+	$(CXX) $(CXXFLAGS) $(filter-out %.h $<,$^) $(call GET_OBJ_FILE, $<) -o $@ $(LDFLAGS) $(LLMC_FLAGS)
 
 llama-cli: examples/main/main.cpp \
 	$(OBJ_ALL)
@@ -1522,6 +1526,16 @@ common/build-info.o: common/build-info.cpp
 #
 
 tests: $(TEST_TARGETS)
+
+llama-benchmark-matmult: examples/benchmark/benchmark-matmult.cpp \
+	$(OBJ_GGML) common/build-info.o
+	$(CXX) $(CXXFLAGS) -c $< -o $(call GET_OBJ_FILE, $<)
+	$(CXX) $(CXXFLAGS) $(filter-out %.h $<,$^) $(call GET_OBJ_FILE, $<) -o $@ $(LDFLAGS)
+
+run-benchmark-matmult: llama-benchmark-matmult
+	./$@
+
+.PHONY: run-benchmark-matmult swift
 
 tests/test-arg-parser: tests/test-arg-parser.cpp \
 	$(OBJ_ALL)
