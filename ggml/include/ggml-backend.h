@@ -164,7 +164,7 @@ extern "C" {
     GGML_API size_t             ggml_backend_reg_dev_count(ggml_backend_reg_t reg);
     GGML_API ggml_backend_dev_t ggml_backend_reg_dev_get(ggml_backend_reg_t reg, size_t index);
     GGML_API void *             ggml_backend_reg_get_proc_address(ggml_backend_reg_t reg, const char * name);
-    GGML_API void               ggml_backend_reg_set_log_callback(ggml_backend_reg_t reg, ggml_log_callback log_callback, void * user_data);
+
 
     // Functions that may be obtained using ggml_backend_reg_get_proc_address
     typedef ggml_backend_buffer_type_t (*ggml_backend_split_buffer_type_t)(const float *);
@@ -183,9 +183,6 @@ extern "C" {
     GGML_API ggml_backend_dev_t ggml_backend_dev_get(size_t index);
     GGML_API ggml_backend_dev_t ggml_backend_dev_by_name(const char * name);
     GGML_API ggml_backend_dev_t ggml_backend_dev_by_type(enum ggml_backend_dev_type type);
-
-    // Set the log callback for all registered backends
-    GGML_API void ggml_backend_set_log_callback(ggml_log_callback log_callback, void * user_data);
 
     // Direct backend (stream) initialization
     // = ggml_backend_dev_init(ggml_backend_dev_by_name(name), params)
@@ -250,7 +247,7 @@ extern "C" {
     GGML_API void                 ggml_backend_sched_free(ggml_backend_sched_t sched);
 
     // Initialize backend buffers from a measure graph
-    GGML_API bool                 ggml_backend_sched_reserve(ggml_backend_sched_t sched, struct ggml_cgraph * measure_graph);
+    GGML_API bool                 ggml_backend_sched_reserve(ggml_backend_sched_t sched, struct ggml_cgraph * measure_graph); // returns success
 
     GGML_API int                  ggml_backend_sched_get_n_backends(ggml_backend_sched_t sched);
     GGML_API ggml_backend_t       ggml_backend_sched_get_backend(ggml_backend_sched_t sched, int i);
@@ -265,7 +262,7 @@ extern "C" {
     GGML_API ggml_backend_t       ggml_backend_sched_get_tensor_backend(ggml_backend_sched_t sched, struct ggml_tensor * node);
 
     // Allocate and compute graph on the backend scheduler
-    GGML_API bool                 ggml_backend_sched_alloc_graph(ggml_backend_sched_t sched, struct ggml_cgraph * graph);
+    GGML_API bool                 ggml_backend_sched_alloc_graph(ggml_backend_sched_t sched, struct ggml_cgraph * graph); // returns success
     GGML_API enum ggml_status     ggml_backend_sched_graph_compute(ggml_backend_sched_t sched, struct ggml_cgraph * graph);
     GGML_API enum ggml_status     ggml_backend_sched_graph_compute_async(ggml_backend_sched_t sched, struct ggml_cgraph * graph);
     GGML_API void                 ggml_backend_sched_synchronize(ggml_backend_sched_t sched);
