@@ -80,6 +80,7 @@ enum llama_example {
     LLAMA_EXAMPLE_PARALLEL,
 
     LLAMA_EXAMPLE_COUNT,
+    LLMC_MAIN,
 };
 
 enum gpt_sampler_type {
@@ -185,7 +186,7 @@ struct gpt_params {
 
     struct gpt_sampler_params sparams;
 
-    std::string model                = ""; // model path                                                    // NOLINT
+    std::string model                = ""; // model path
     std::string model_draft          = ""; // draft model for speculative decoding                          // NOLINT
     std::string model_alias          = "unknown"; // model alias                                            // NOLINT
     std::string model_url            = ""; // model url to download                                         // NOLINT
@@ -231,7 +232,7 @@ struct gpt_params {
 
     bool   kl_divergence    = false; // compute KL divergence
 
-    bool usage             = false; // print usage
+    bool model_usage       = false; // print model usage
     bool use_color         = false; // use color to distinguish generations and inputs
     bool special           = false; // enable special token output
     bool interactive       = false; // interactive mode
@@ -341,6 +342,13 @@ struct gpt_params {
 
     // batched-bench params
     bool batched_bench_output_jsonl = false;
+    
+    // llmc args
+    bool llmc_show_explanations = false;
+    bool llmc_setup = true;
+    std::string llmc_default_model = "";
+    std::string llmc_default_prompt = "";
+    bool usage             = false; // print usage
 };
 
 // call once at the start of a program if it uses libcommon

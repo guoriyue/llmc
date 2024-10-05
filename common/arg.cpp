@@ -297,13 +297,16 @@ static void gpt_params_print_usage(gpt_params_context & ctx_arg) {
             printf("%s", opt->to_string().c_str());
         }
     };
-
+    // llmc
+    std::vector<llama_arg *> llmc_options;
     std::vector<llama_arg *> common_options;
     std::vector<llama_arg *> sparam_options;
     std::vector<llama_arg *> specific_options;
     for (auto & opt : ctx_arg.options) {
         // in case multiple LLAMA_EXAMPLE_* are set, we prioritize the LLAMA_EXAMPLE_* matching current example
-        if (opt.is_sparam) {
+        if (opt.in_example(LLMC_MAIN)) {
+            llmc_options.push_back(&opt);
+        } else if (opt.is_sparam) {
             sparam_options.push_back(&opt);
         } else if (opt.in_example(ctx_arg.ex)) {
             specific_options.push_back(&opt);
@@ -311,13 +314,19 @@ static void gpt_params_print_usage(gpt_params_context & ctx_arg) {
             common_options.push_back(&opt);
         }
     }
-    printf("----- common params -----\n\n");
-    print_options(common_options);
-    printf("\n\n----- sampling params -----\n\n");
-    print_options(sparam_options);
-    // TODO: maybe convert enum llama_example to string
-    printf("\n\n----- example-specific params -----\n\n");
-    print_options(specific_options);
+    printf("----- llmc params -----\n\n");
+    print_options(llmc_options);
+    if (ctx_arg.params.model_usage) {
+        printf("----- common params -----\n\n");
+        print_options(common_options);
+        printf("\n\n----- sampling params -----\n\n");
+        print_options(sparam_options);
+        // TODO: maybe convert enum llama_example to string
+        printf("\n\n----- example-specific params -----\n\n");
+        print_options(specific_options);
+    } else {
+        printf("If you'd like to explore more advanced model options, pass --model-help or --model-usage for additional usage instructions.");
+    }
 }
 
 bool gpt_params_parse(int argc, char ** argv, gpt_params & params, llama_example ex, void(*print_usage)(int, char **)) {
@@ -365,19 +374,21 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
      * - all examples inherit options from LLAMA_EXAMPLE_COMMON
      * - if LLAMA_EXAMPLE_* is set (other than COMMON), we only show the option in the corresponding example
      * - if both {LLAMA_EXAMPLE_COMMON, LLAMA_EXAMPLE_*,} are set, we will prioritize the LLAMA_EXAMPLE_* matching current example
+     * - if LLMC_MAIN is set, we will include the option in the main example
      */
     auto add_opt = [&](llama_arg arg) {
         if (arg.in_example(ex) || arg.in_example(LLAMA_EXAMPLE_COMMON)) {
             ctx_arg.options.push_back(std::move(arg));
+        } else if (arg.in_example(LLMC_MAIN)) {
+            ctx_arg.options.push_back(std::move(arg));
         }
     };
 
-
     add_opt(llama_arg(
-        {"-h", "--help", "--usage"},
-        "print usage and exit",
+        {"--model-help", "--model-usage"},
+        "print llm model usage and exit",
         [](gpt_params & params) {
-            params.usage = true;
+            params.model_usage = true;
         }
     ));
     add_opt(llama_arg(
@@ -2001,6 +2012,41 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
             gpt_log_set_timestamps(gpt_log_main(), true);
         }
     ).set_env("LLAMA_LOG_TIMESTAMPS"));
+    add_opt(llama_arg(
+        {"-h", "--help", "--usage"},
+        "print usage and exit",
+        [](gpt_params & params) {
+            params.usage = true;
+        }
+    ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--llmc-setup"},
+        "Setup session for llmc",
+        [](gpt_params & params) {
+            params.llmc_setup = true;
+        }
+    ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--llmc-show-explanations"},
+        "Show explanations in the output",
+        [](gpt_params & params) {
+            params.llmc_show_explanations = true;
+        }
+    ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--llmc-default-model"}, "FNAME",
+        "Set default model for llmc",
+        [](gpt_params & params, const std::string & value) {
+            params.llmc_default_model = value;
+        }
+    ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--llmc-default-prompt"}, "PROMPT",
+        "Set default prompt for llmc",
+        [](gpt_params & params, const std::string & value) {
+            params.llmc_default_prompt = value;
+        }
+    ).set_examples({LLMC_MAIN}));
 
     return ctx_arg;
 }
