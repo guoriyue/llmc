@@ -345,10 +345,11 @@ struct gpt_params {
     
     // llmc args
     bool llmc_show_explanations = false;
-    bool llmc_setup = true;
-    std::string llmc_default_model = "";
-    std::string llmc_default_prompt = "";
+    bool llmc_setup = false;
+    // std::string llmc_default_model = "";
+    // std::string llmc_default_prompt = "";
     bool usage             = false; // print usage
+    bool llmc_reset        = false; // reset the model
 };
 
 // call once at the start of a program if it uses libcommon

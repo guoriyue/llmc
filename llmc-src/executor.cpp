@@ -130,62 +130,62 @@ std::string edit_prefilled_input(const std::string &prefilled_text) {
     return input;
 }
 
-void executor::execute_embedded_executable(const std::string& model_path, int argc, char* argv[]) {
-    std::string exec_path = "./llama_cpp/llama-cli";
-    std::string command = exec_path;
-    bool print_mode = false;
+// void executor::execute_embedded_executable(const std::string& model_path, int argc, char* argv[]) {
+//     std::string exec_path = "./llama_cpp/llama-cli";
+//     std::string command = exec_path;
+//     bool print_mode = false;
 
-    if (argc == 2) {
-        std::string prompt = argv[1];
-        prompt = std::string(PROMPT_CMD_GEN) + '\n' + prompt;
-        printf("prompt: %s\n", prompt.c_str());
-        command += " -m " + model_path + " -p \"" + prompt + "\"" ;
-    } else if (argc == 3) {
-        std::string prompt = argv[1];
-        std::string num_tokens = argv[2];
-        prompt = std::string(PROMPT_CMD_GEN) + '\n' + prompt;
-        printf("prompt: %s\n", prompt.c_str());
-        command += " -m " + model_path + " -p \"" + prompt + "\"";
-    } 
-    else {
-        std::cerr << "Please provide a prompt. For example: llmc \"sort files by size\"" << std::endl;
-        std::cerr << "Usage: llmc <prompt>" << std::endl;
-        exit(1);
-    }
+//     if (argc == 2) {
+//         std::string prompt = argv[1];
+//         prompt = std::string(PROMPT_CMD_GEN) + '\n' + prompt;
+//         printf("prompt: %s\n", prompt.c_str());
+//         command += " -m " + model_path + " -p \"" + prompt + "\"" ;
+//     } else if (argc == 3) {
+//         std::string prompt = argv[1];
+//         std::string num_tokens = argv[2];
+//         prompt = std::string(PROMPT_CMD_GEN) + '\n' + prompt;
+//         printf("prompt: %s\n", prompt.c_str());
+//         command += " -m " + model_path + " -p \"" + prompt + "\"";
+//     } 
+//     else {
+//         std::cerr << "Please provide a prompt. For example: llmc \"sort files by size\"" << std::endl;
+//         std::cerr << "Usage: llmc <prompt>" << std::endl;
+//         exit(1);
+//     }
 
 
     
     
-    command += " 2>&1"; // redirect stderr to stdout
+//     command += " 2>&1"; // redirect stderr to stdout
 
-    FILE* pipe = popen(command.c_str(), "r");
-    if (!pipe) {
-        std::cerr << "Failed to run command: " << strerror(errno) << std::endl;
-        exit(1);
-    }
+//     FILE* pipe = popen(command.c_str(), "r");
+//     if (!pipe) {
+//         std::cerr << "Failed to run command: " << strerror(errno) << std::endl;
+//         exit(1);
+//     }
 
-    char buffer[1024];
-    std::string output;
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-        std::string line(buffer);
-        if (line.find("llama_perf_sampler_print:") != std::string::npos) {
-            print_mode = false;
-        }
+//     char buffer[1024];
+//     std::string output;
+//     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+//         std::string line(buffer);
+//         if (line.find("llama_perf_sampler_print:") != std::string::npos) {
+//             print_mode = false;
+//         }
 
-        // Always check for "error"
-        if (line.find("error") != std::string::npos || print_mode) {
-            output += line;
-        }
+//         // Always check for "error"
+//         if (line.find("error") != std::string::npos || print_mode) {
+//             output += line;
+//         }
 
-        if (line.find("generate:") != std::string::npos) {
-            print_mode = true;
-        }
-    }
-    // std::string prefilled_text = "git add -A && git commit -m \"Initial commit\" && git push origin master";
+//         if (line.find("generate:") != std::string::npos) {
+//             print_mode = true;
+//         }
+//     }
+//     // std::string prefilled_text = "git add -A && git commit -m \"Initial commit\" && git push origin master";
     
-    std::string result = edit_prefilled_input(output);
+//     std::string result = edit_prefilled_input(output);
     
-    std::cout << "You entered: " << result << std::endl;
+//     std::cout << "You entered: " << result << std::endl;
 
-    pclose(pipe);
-}
+//     pclose(pipe);
+// }

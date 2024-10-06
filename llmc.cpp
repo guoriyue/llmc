@@ -199,11 +199,9 @@ int main(int argc, char ** argv) {
     if (!gpt_params_parse(argc, argv, params, LLAMA_EXAMPLE_MAIN, print_usage)) {
         return 1;
     }
-
     gpt_init();
 
     auto & sparams = params.sparams;
-
     // save choice to use color for later
     // (note for later: this is a slightly awkward choice)
     console::init(params.simple_io, params.use_color);
@@ -238,7 +236,20 @@ int main(int argc, char ** argv) {
         LOG_WRN("%s: warning: scaling RoPE frequency by %g.\n", __func__, params.rope_freq_scale);
     }
 
-    LOG_INF("%s: llama backend init\n", __func__);
+    // LOG_INF("%s: llama backend init\n", __func__);
+    model_manager mm = model_manager();
+    std::string cached_model = mm.get_cached_model();
+    if (cached_model.empty() || params.llmc_setup) {
+        // force to reset the model
+        printf("Setting up the model for llmc\n");
+        cached_model = mm.set_model();
+    } else if (!file_exists(cached_model) || file_is_empty(cached_model)) {
+        printf("The model path doesn't exist or is empty. Please set a model first.\n");
+        cached_model = mm.set_model();
+    } else if (params.llmc_reset) {
+        // mm.set_default_model();
+        printf("Resetting to default configuration\n");
+    }
 
     llama_backend_init();
     llama_numa_init(params.numa);
@@ -254,7 +265,7 @@ int main(int argc, char ** argv) {
     g_smpl = &smpl;
 
     // load the model and apply lora adapter, if any
-    LOG_INF("%s: load the model and apply lora adapter, if any\n", __func__);
+    // LOG_INF("%s: load the model and apply lora adapter, if any\n", __func__);
     llama_init_result llama_init = llama_init_from_gpt_params(params);
 
     model = llama_init.model;
@@ -265,7 +276,7 @@ int main(int argc, char ** argv) {
         return 1;
     }
 
-    LOG_INF("%s: llama threadpool init, n_threads = %d\n", __func__, (int) params.cpuparams.n_threads);
+    // LOG_INF("%s: llama threadpool init, n_threads = %d\n", __func__, (int) params.cpuparams.n_threads);
 
     struct ggml_threadpool_params tpp_batch =
             ggml_threadpool_params_from_cpu_params(params.cpuparams_batch);

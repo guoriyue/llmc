@@ -211,8 +211,14 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
             throw std::invalid_argument("expected value for argument");
         }
     };
+    // check if argv[1] is an arg or a value
+    int argc_start_idx = (argc > 1 && argv[1][0] != '-') ? 2 : 1;
+    // allow user to pass prompt as first argument
+    if (argc_start_idx == 2) {
+        ctx_arg.params.prompt = argv[1];
+    }
 
-    for (int i = 1; i < argc; i++) {
+    for (int i = argc_start_idx; i < argc; i++) {
         const std::string arg_prefix = "--";
 
         std::string arg = argv[i];
@@ -325,7 +331,7 @@ static void gpt_params_print_usage(gpt_params_context & ctx_arg) {
         printf("\n\n----- example-specific params -----\n\n");
         print_options(specific_options);
     } else {
-        printf("If you'd like to explore more advanced model options, pass --model-help or --model-usage for additional usage instructions.");
+        printf("If you'd like to explore more advanced model options, pass --model-help or --model-usage for additional usage instructions.\n\n");
     }
 }
 
@@ -2020,33 +2026,40 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
         }
     ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
-        {"--llmc-setup"},
-        "Setup session for llmc",
+        {"--setup"},
+        "Set up your llmc session: choose or customize the model",
         [](gpt_params & params) {
             params.llmc_setup = true;
         }
     ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
-        {"--llmc-show-explanations"},
+        {"--reset"},
+        "Reset llmc to its default model and prompt",
+        [](gpt_params & params) {
+            params.llmc_reset = true;
+        }
+    ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--show-explanations"},
         "Show explanations in the output",
         [](gpt_params & params) {
             params.llmc_show_explanations = true;
         }
     ).set_examples({LLMC_MAIN}));
-    add_opt(llama_arg(
-        {"--llmc-default-model"}, "FNAME",
-        "Set default model for llmc",
-        [](gpt_params & params, const std::string & value) {
-            params.llmc_default_model = value;
-        }
-    ).set_examples({LLMC_MAIN}));
-    add_opt(llama_arg(
-        {"--llmc-default-prompt"}, "PROMPT",
-        "Set default prompt for llmc",
-        [](gpt_params & params, const std::string & value) {
-            params.llmc_default_prompt = value;
-        }
-    ).set_examples({LLMC_MAIN}));
+    // add_opt(llama_arg(
+    //     {"--default-model"}, "FNAME",
+    //     "Set default model for llmc",
+    //     [](gpt_params & params, const std::string & value) {
+    //         params.llmc_default_model = value;
+    //     }
+    // ).set_examples({LLMC_MAIN}));
+    // add_opt(llama_arg(
+    //     {"--default-prompt"}, "PROMPT",
+    //     "Set default prompt for llmc",
+    //     [](gpt_params & params, const std::string & value) {
+    //         params.llmc_default_prompt = value;
+    //     }
+    // ).set_examples({LLMC_MAIN}));
 
     return ctx_arg;
 }

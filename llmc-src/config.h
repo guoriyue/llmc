@@ -20,12 +20,12 @@ Generate the appropriate command for the following task, and ensure that **only 
 If there are multiple valid commands, return each one in a separate <command> block. \n\
 **Do not wrap explanations, suggestions, or notes inside <command> tags**. Those should be outside the command blocks.\n"
 
-#include <string>
+// #include <string>
 
-class config {
-public:
-    static std::string read_model_path();
-    static void save_model_path(const std::string& path);
-};
+// class config {
+// public:
+//     // static std::string read_model_path();
+//     // static void save_model_path(const std::string& path);
+// };
 
 #endif // CONFIG_MANAGER_H

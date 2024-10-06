@@ -8,8 +8,6 @@ class model_manager {
 public:
     std::string model_path;
     std::string prompt;
-    int max_tokens;
-    bool show_explanation_flag;
     std::vector<std::string> models_to_choose;
     bool first_call_print_models = true;
 
@@ -25,10 +23,11 @@ public:
     }
 
     std::string get_valid_model_path(const std::string& cache_dir, const std::string& model_url, const std::string& model_file_name);
-    void show_help();
     std::string set_model();
-    void handle_max_tokens(int max_tokens);
-    void set_show_explanation(bool show);
+    int choose_model();
+    std::string get_cached_model();
+    std::string read_model_path();
+    void save_model_path(const std::string& path);
     void print_models(const std::vector<std::string>& models, int current_choice);
 };
 
