@@ -3,6 +3,8 @@
 #include "file_manager.h"
 #include "downloader.h"
 #include "common.h"
+#include "json.hpp"
+
 #include <sys/stat.h>
 #include <iostream>
 #include <ncurses.h>
@@ -24,6 +26,7 @@
     #include <unistd.h>   // For STDIN_FILENO
 #endif
 #include <cstdio>
+
 // Function to move the cursor up by a given number of lines
 static void move_cursor_up(int lines) {
     std::cout << "\033[" << lines << "A";
@@ -90,30 +93,45 @@ void model_manager::print_models(const std::vector<std::string>& models, std::si
 std::string model_manager::read_model_path() {
     // std::string config_path = file_manager::get_cache_directory(CMD_NAME) + "/" + CONFIG_FILE;
     std::string config_path = fs_get_cache_file(CONFIG_FILE);
-    printf("config_path: %s\n", config_path.c_str());
     std::ifstream infile(config_path);
-    std::string model_path;
-    if (infile.good()) {
-        std::getline(infile, model_path);
+    if (!infile.is_open()) {
+        std::cout << "Error: Unable to open the config file."<< std::endl;
+        return "";
     }
-    return model_path;
+    nlohmann::json config_dict;
+    infile >> config_dict;  // The >> operator automatically parses the JSON file content
+    infile.close();  // Close the file after reading
+    return config_dict["model_path"];
+    // std::string model_path;
+    // if (infile.good()) {
+    //     std::getline(infile, model_path);
+    // }
+    // return model_path;
 }
 
 void model_manager::save_model_path(const std::string& path) {
     // std::string config_path = file_manager::get_cache_directory(CMD_NAME) + "/" + CONFIG_FILE;
     std::string config_path = fs_get_cache_file(CONFIG_FILE);
     std::ofstream outfile(config_path);
-    outfile << path;
-}
-
-
-std::string model_manager::get_cached_model() {
-    std::string model_path = read_model_path();
-    if (model_path.empty()) {
-        std::cout << "No cached model found. Please set a model first." << std::endl;
+    nlohmann::json config_dict;
+    config_dict["model_path"] = path;
+    if (outfile.is_open()) {
+        outfile << config_dict.dump(4);  // Pretty print with 4 spaces
+        outfile.close();
+    } else {
+        std::cout << "Error: Unable to open the config file." << std::endl;
     }
-    return model_path;
+    // std::ofstream outfile(config_path);
+    // outfile << path;
 }
+
+// std::string model_manager::get_cached_model() {
+//     std::string model_path = read_model_path();
+//     if (model_path.empty()) {
+//         std::cout << "No cached model found. Please set a model first." << std::endl;
+//     }
+//     return model_path;
+// }
 
 std::size_t model_manager::choose_model() {
     std::size_t choice = 0;
@@ -165,39 +183,57 @@ std::string model_manager::set_model() {
         std::cin >> custom_prompt;
         return custom_model_path;
     } else {
-        return models_to_choose[chosen];
+        std::string chosen_model = models_to_choose[chosen];
+        std::string chosen_model_url = model_urls[chosen];
+        size_t last_slash = chosen_model_url.find_last_of('/');
+    
+        // Get the substring after the last '/'
+        std::string file_name = (last_slash != std::string::npos) ? chosen_model_url.substr(last_slash + 1) : chosen_model_url;
+    
+        std::string chosen_model_path = fs_get_cache_file(file_name);
+        printf("before download\n");
+        // download the model
+        bool download_model = downloader::download_file(chosen_model_url, chosen_model_path);
+        if (!download_model) {
+            std::cout << "Error: Could not download the model." << std::endl;
+            return "";
+        }
+        printf("download_model = %d\n", download_model);
+        printf("chosen_model_path = %s\n", chosen_model_path.c_str());
+        save_model_path(chosen_model_path);
+        return chosen_model_path;
     }
 }
 
-std::string model_manager::get_valid_model_path(const std::string& cache_dir, const std::string& model_url, const std::string& model_file_name) {
-    std::string model_path = read_model_path();
-    if (model_path.empty()) {
-        model_path = cache_dir + "/" + model_file_name;
-        std::cout << "Downloading model.\n";
-        if (downloader::download_file(model_url, model_path)) {
-            std::cout << "Model downloaded successfully.\n";
-        } else {
-            std::cout << "Model download failed.\n";
-            exit(1);
-        }
-    } else {
-        // check if the model file exists
-        struct stat buffer;
-        if (stat(model_path.c_str(), &buffer) != 0) {
-            std::cerr << "Model file not found: " << model_path << std::endl;
-            model_path = cache_dir + "/" + model_file_name;
-            std::cout << "Downloading model.\n";
-            if (downloader::download_file(model_url, model_path)) {
-                std::cout << "\nModel downloaded successfully.\n";
-            } else {
-                std::cout << "Model download failed.\n";
-                exit(1);
-            }
-        }
-    }
-    save_model_path(model_path);
-    return model_path;
-}
+// std::string model_manager::get_valid_model_path(const std::string& cache_dir, const std::string& model_url, const std::string& model_file_name) {
+//     std::string model_path = read_model_path();
+//     if (model_path.empty()) {
+//         model_path = cache_dir + "/" + model_file_name;
+//         std::cout << "Downloading model.\n";
+//         if (downloader::download_file(model_url, model_path)) {
+//             std::cout << "Model downloaded successfully.\n";
+//         } else {
+//             std::cout << "Model download failed.\n";
+//             exit(1);
+//         }
+//     } else {
+//         // check if the model file exists
+//         struct stat buffer;
+//         if (stat(model_path.c_str(), &buffer) != 0) {
+//             std::cerr << "Model file not found: " << model_path << std::endl;
+//             model_path = cache_dir + "/" + model_file_name;
+//             std::cout << "Downloading model.\n";
+//             if (downloader::download_file(model_url, model_path)) {
+//                 std::cout << "\nModel downloaded successfully.\n";
+//             } else {
+//                 std::cout << "Model download failed.\n";
+//                 exit(1);
+//             }
+//         }
+//     }
+//     save_model_path(model_path);
+//     return model_path;
+// }
 
 
 // void model_manager::set_default_model() {

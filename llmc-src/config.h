@@ -1,12 +1,12 @@
 #ifndef CONFIG_MANAGER_H
 #define CONFIG_MANAGER_H
 
-#define CONFIG_FILE "llmc_config.txt"
+#define CONFIG_FILE "llmc_config.json"
 #define CMD_NAME "llmc"
 // #define MODEL_URL "https://llmc-models.s3.amazonaws.com/Meta-Llama-3-8B-Instruct.Q8_0.gguf"
 // #define MODEL_PATH "Meta-Llama-3-8B-Instruct.Q8_0.gguf"
-#define MODEL_URL "https://llmc-models.s3.amazonaws.com/Llama-3.2-1B-Instruct-Q8_0.gguf"
-#define MODEL_PATH "Llama-3.2-1B-Instruct-Q8_0.gguf"
+// #define MODEL_URL "https://llmc-models.s3.amazonaws.com/Llama-3.2-1B-Instruct-Q8_0.gguf"
+// #define MODEL_PATH "Llama-3.2-1B-Instruct-Q8_0.gguf"
 #define MAX_NUM_TOKENS 256
 #define PROMPT_CMD_GEN "You are an expert command-line assistant tailored for developers. \n\
 Your role is to understand developer requests and generate the appropriate command-line solution. Here are a couple of examples of how you handle input: \n\

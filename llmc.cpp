@@ -238,14 +238,15 @@ int main(int argc, char ** argv) {
 
     // LOG_INF("%s: llama backend init\n", __func__);
     model_manager mm = model_manager();
-    std::string cached_model = mm.get_cached_model();
-    if (cached_model.empty() || params.llmc_setup) {
+    std::string model_path = mm.read_model_path();
+    printf("model_path = %s\n", model_path.c_str());
+    if (model_path.empty() || params.llmc_setup) {
         // force to reset the model
         printf("Setting up the model for llmc\n");
-        cached_model = mm.set_model();
-    } else if (!file_exists(cached_model) || file_is_empty(cached_model)) {
+        model_path = mm.set_model();
+    } else if (!file_exists(model_path) || file_is_empty(model_path)) {
         printf("The model path doesn't exist or is empty. Please set a model first.\n");
-        cached_model = mm.set_model();
+        model_path = mm.set_model();
     } else if (params.llmc_reset) {
         // mm.set_default_model();
         printf("Resetting to default configuration\n");
