@@ -25,17 +25,17 @@
 #endif
 #include <cstdio>
 // Function to move the cursor up by a given number of lines
-void move_cursor_up(int lines) {
+static void move_cursor_up(int lines) {
     std::cout << "\033[" << lines << "A";
 }
 
 // Function to clear the current line
-void clear_line() {
+static void clear_line() {
     std::cout << "\033[2K\r";
 }
 
 // Cross-platform getch function
-int cp_getch() {
+static int cp_getch() {
 #ifdef _WIN32
     return _getch();  // Use _getch() on Windows
 #else
@@ -52,7 +52,7 @@ int cp_getch() {
 }
 
 // Function to manually turn echo back on
-void enable_echo() {
+static void enable_echo() {
     struct termios t;
     tcgetattr(STDIN_FILENO, &t);  // Get current terminal settings
     t.c_lflag |= ECHO;  // Enable echo
@@ -60,23 +60,23 @@ void enable_echo() {
 }
 
 // Function to disable echo if needed (optional helper)
-void disable_echo() {
+static void disable_echo() {
     struct termios t;
     tcgetattr(STDIN_FILENO, &t);  // Get current terminal settings
     t.c_lflag &= ~ECHO;  // Disable echo
     tcsetattr(STDIN_FILENO, TCSANOW, &t);  // Apply the settings
 }
 
-void model_manager::print_models(const std::vector<std::string>& models, int current_choice) {
+void model_manager::print_models(const std::vector<std::string>& models, std::size_t current_choice) {
     // Move the cursor up by the number of model lines to overwrite them
     if (first_call_print_models) {
         first_call_print_models = false;
     } else {
-        for (int i = 0; i < models.size(); ++i) {
+        for (std::size_t i = 0; i < models.size(); ++i) {
             std::cout << "\033[F";
         }
     }
-    for (int i = 0; i < models.size(); ++i) {
+    for (std::size_t i = 0; i < models.size(); ++i) {
         if (i == current_choice) {
             // Highlight the current choice (reverse video mode)
             std::cout << "\033[7m" << models[i] << "\033[0m" << std::endl;
@@ -115,8 +115,8 @@ std::string model_manager::get_cached_model() {
     return model_path;
 }
 
-int model_manager::choose_model() {
-    int choice = 0;
+std::size_t model_manager::choose_model() {
+    std::size_t choice = 0;
     int key;
 
     // Print the initial model list

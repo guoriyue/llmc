@@ -24,11 +24,11 @@ public:
 
     std::string get_valid_model_path(const std::string& cache_dir, const std::string& model_url, const std::string& model_file_name);
     std::string set_model();
-    int choose_model();
+    std::size_t choose_model();
     std::string get_cached_model();
     std::string read_model_path();
     void save_model_path(const std::string& path);
-    void print_models(const std::vector<std::string>& models, int current_choice);
+    void print_models(const std::vector<std::string>& models, std::size_t current_choice);
 };
 
 #endif // MODEL_MANAGER_H
