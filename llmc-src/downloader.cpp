@@ -34,17 +34,34 @@ void enable_input() {
 // Function to display progress bar with speed
 void show_progress_bar(double percentage, double speed) {
     int bar_width = 50;
-    std::cout << "[";
+    static int last_output_length = 0; // Keep track of the last output length
+
+    // Create the progress bar string
+    std::ostringstream oss;
+    oss << "[";
     int pos = static_cast<int>(bar_width * percentage);
     for (int i = 0; i < bar_width; ++i) {
-        if (i < pos) std::cout << "=";
-        else if (i == pos) std::cout << ">";
-        else std::cout << " ";
+        if (i < pos) oss << "=";
+        else if (i == pos) oss << ">";
+        else oss << " ";
     }
-    // Set fixed and precision for both percentage and speed
-    std::cout << "] " << std::fixed << std::setprecision(2) << (percentage * 100.0) << " % "
-              << std::fixed << std::setprecision(2) << speed << " MB/s\r";
-    std::cout.flush();
+    // Add percentage and speed to the progress bar string
+    oss << "] " << std::fixed << std::setprecision(2) << (percentage * 100.0) << " % "
+        << std::fixed << std::setprecision(2) << speed << " MB/s";
+
+    // Get the current output as a string
+    std::string output = oss.str();
+
+    // If the current output is shorter than the previous one, add spaces to clear old characters
+    if (output.length() < last_output_length) {
+        output += std::string(last_output_length - output.length(), ' ');
+    }
+
+    // Update the last output length
+    last_output_length = output.length();
+
+    // Print the output in place
+    std::cout << "\r" << output << std::flush;
 }
 
 // Callback function to write the downloaded data to a file
@@ -53,17 +70,20 @@ size_t write_data(void* buffer, size_t size, size_t nmemb, void* userp) {
     ofs->write(static_cast<char*>(buffer), size * nmemb);
     return size * nmemb;
 }
-
-// Progress callback function for curl
 int progress_callback(void* ptr, curl_off_t total, curl_off_t now, curl_off_t, curl_off_t) {
-    static auto start_time = std::chrono::steady_clock::now(); // Track total download time
+    static auto last_update_time = std::chrono::steady_clock::now(); // Track time of the last update
     static curl_off_t prev_downloaded = 0;
     static double accumulated_time = 0.0; // To accumulate time for more stable speed calculation
 
-    if (total > 0) {
-        // Calculate elapsed time
-        auto current_time = std::chrono::steady_clock::now();
-        std::chrono::duration<double> elapsed_seconds = current_time - start_time;
+    // Define the minimum interval between updates (e.g., 0.5 seconds)
+    constexpr double update_interval = 0.5; 
+
+    // Calculate elapsed time since the last update
+    auto current_time = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed_since_last_update = current_time - last_update_time;
+
+    if (elapsed_since_last_update.count() >= update_interval && total > 0) {
+        std::chrono::duration<double> elapsed_seconds = current_time - last_update_time;
 
         // Calculate speed in MB/s
         curl_off_t downloaded = now - prev_downloaded;
@@ -79,10 +99,11 @@ int progress_callback(void* ptr, curl_off_t total, curl_off_t now, curl_off_t, c
         show_progress_bar(progress, speed);
 
         // Reset tracking variables
-        start_time = current_time;
+        last_update_time = current_time;
         prev_downloaded = now;
-        accumulated_time = 0.0; // Reset accumulated time for next interval
+        accumulated_time = 0.0; // Reset accumulated time for the next interval
     }
+
     return 0;
 }
 
