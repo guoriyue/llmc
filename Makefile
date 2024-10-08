@@ -1257,7 +1257,11 @@ clean:
 GET_OBJ_FILE = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cu,%.o,$(1))))
 
 LLMC_OBJ = $(patsubst %.cpp,%.o,$(wildcard llmc-src/*.cpp))
+
 LLMC_OBJ_ALL = $(OBJ_GGML) $(OBJ_LLAMA) $(OBJ_COMMON) $(LLMC_OBJ)
+# LLMC_OBJ = $(patsubst %.cpp,%.o,$(wildcard llmc-src/*.cpp))
+
+# LLMC_OBJ_ALL = $(OBJ_GGML) $(OBJ_LLAMA) $(OBJ_COMMON)
 LLMC_FLAGS = -lcurl -lreadline -lncurses
 
 llmc: llmc.cpp \

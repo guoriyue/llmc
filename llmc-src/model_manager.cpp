@@ -3,8 +3,9 @@
 #include "file_manager.h"
 #include "downloader.h"
 #include "common.h"
-#include "json.hpp"
+#include "console.h"
 
+#include "json.hpp"
 #include <sys/stat.h>
 #include <iostream>
 #include <ncurses.h>
@@ -19,6 +20,7 @@
 #include <ncurses.h>
 #include <vector>
 #include <string>
+
 #ifdef _WIN32
     #include <conio.h>  // Windows specific for _getch()
 #else
@@ -37,22 +39,22 @@ static void clear_line() {
     std::cout << "\033[2K\r";
 }
 
-// Cross-platform getch function
-static int cp_getch() {
-#ifdef _WIN32
-    return _getch();  // Use _getch() on Windows
-#else
-    struct termios oldt, newt;
-    int ch;
-    tcgetattr(STDIN_FILENO, &oldt);  // Get current terminal settings
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);  // Disable canonical mode and echo
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);  // Apply new terminal settings
-    ch = getchar();  // Read one character
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);  // Restore old terminal settings
-    return ch;
-#endif
-}
+// // Cross-platform getch function
+// static int cp_getch() {
+// #ifdef _WIN32
+//     return _getch();  // Use _getch() on Windows
+// #else
+//     struct termios oldt, newt;
+//     int ch;
+//     tcgetattr(STDIN_FILENO, &oldt);  // Get current terminal settings
+//     newt = oldt;
+//     newt.c_lflag &= ~(ICANON | ECHO);  // Disable canonical mode and echo
+//     tcsetattr(STDIN_FILENO, TCSANOW, &newt);  // Apply new terminal settings
+//     ch = getchar();  // Read one character
+//     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);  // Restore old terminal settings
+//     return ch;
+// #endif
+// }
 
 // Function to manually turn echo back on
 static void enable_echo() {
@@ -136,15 +138,14 @@ void model_manager::save_model_path(const std::string& path) {
 std::size_t model_manager::choose_model() {
     std::size_t choice = 0;
     int key;
-
+    disable_echo();
     // Print the initial model list
     print_models(models_to_choose, choice);
-
     while (true) {
-        key = cp_getch(); // Cross-platform getch() for keypress
+        key = console::getchar32();
         if (key == 27) { // Escape sequence starts with 27 (ESC)
-            key = cp_getch(); // Skip the '[' character
-            key = cp_getch(); // Get the actual arrow key
+            key = console::getchar32(); // Skip the '[' character
+            key = console::getchar32(); // Get the actual arrow key
 
             switch (key) {
                 case 'A': // Up arrow key
@@ -165,6 +166,7 @@ std::size_t model_manager::choose_model() {
         // Reprint the model list with the updated selection
         print_models(models_to_choose, choice);
     }
+    enable_echo();
 }
 
 std::string model_manager::set_model() {

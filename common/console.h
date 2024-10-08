@@ -16,4 +16,5 @@ namespace console {
     void cleanup();
     void set_display(display_t display);
     bool readline(std::string & line, bool multiline_input);
+    char32_t getchar32();
 }

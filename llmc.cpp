@@ -55,6 +55,12 @@
 #include "log.h"
 #include "sampling.h"
 #include "llama.h"
+// #include "config.h"
+// #include "file_manager.h"
+// #include "downloader.h"
+// #include "model_manager.h"
+// #include "executor.h"
+
 #include "llmc-src/config.h"
 #include "llmc-src/file_manager.h"
 #include "llmc-src/downloader.h"
@@ -204,6 +210,8 @@ int main(int argc, char ** argv) {
     auto & sparams = params.sparams;
     // save choice to use color for later
     // (note for later: this is a slightly awkward choice)
+    printf("params.use_color = %d\n", params.use_color);
+    printf("params.simple_io = %d\n", params.simple_io);
     console::init(params.simple_io, params.use_color);
     atexit([]() { console::cleanup(); });
 

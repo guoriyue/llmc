@@ -161,7 +161,7 @@ namespace console {
         }
     }
 
-    static char32_t getchar32() {
+    char32_t getchar32() {
 #if defined(_WIN32)
         HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
         wchar_t high_surrogate = 0;
