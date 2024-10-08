@@ -177,13 +177,13 @@ static void sigint_handler(int signo) {
             need_insert_eot = true;
         } else {
             console::cleanup();
-            LOG("\n");
-            gpt_perf_print(*g_ctx, *g_smpl);
-            write_logfile(*g_ctx, *g_params, *g_model, *g_input_tokens, g_output_ss->str(), *g_output_tokens);
+            // LOG("\n");
+            // gpt_perf_print(*g_ctx, *g_smpl);
+            // write_logfile(*g_ctx, *g_params, *g_model, *g_input_tokens, g_output_ss->str(), *g_output_tokens);
 
-            // make sure all logs are flushed
-            LOG("Interrupted by user\n");
-            gpt_log_pause(gpt_log_main());
+            // // make sure all logs are flushed
+            // LOG("Interrupted by user\n");
+            // gpt_log_pause(gpt_log_main());
 
             _exit(130);
         }
@@ -1004,8 +1004,8 @@ int main(int argc, char ** argv) {
     }
 
     LOG("\n\n");
-    gpt_perf_print(ctx, smpl);
-    write_logfile(ctx, params, model, input_tokens, output_ss.str(), output_tokens);
+    // gpt_perf_print(ctx, smpl);
+    // write_logfile(ctx, params, model, input_tokens, output_ss.str(), output_tokens);
 
     gpt_sampler_free(smpl);
 
