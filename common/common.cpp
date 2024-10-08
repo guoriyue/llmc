@@ -955,6 +955,7 @@ struct llama_model_params llama_model_params_from_gpt_params(const gpt_params & 
     mparams.use_mmap        = params.use_mmap;
     mparams.use_mlock       = params.use_mlock;
     mparams.check_tensors   = params.check_tensors;
+    mparams.trace           = params.trace;
     if (params.kv_overrides.empty()) {
         mparams.kv_overrides = NULL;
     } else {

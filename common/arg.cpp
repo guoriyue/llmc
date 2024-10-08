@@ -2046,6 +2046,13 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
             params.llmc_show_explanations = true;
         }
     ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--trace"},
+        "Enable tracing",
+        [](gpt_params & params) {
+            params.trace = true;
+        }
+    ).set_examples({LLMC_MAIN}));
     // add_opt(llama_arg(
     //     {"--default-model"}, "FNAME",
     //     "Set default model for llmc",

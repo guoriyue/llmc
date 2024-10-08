@@ -350,6 +350,7 @@ struct gpt_params {
     // std::string llmc_default_prompt = "";
     bool usage             = false; // print usage
     bool llmc_reset        = false; // reset the model
+    bool trace             = false; // enable trace mode
 };
 
 // call once at the start of a program if it uses libcommon

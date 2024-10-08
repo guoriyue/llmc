@@ -307,6 +307,7 @@ extern "C" {
         bool use_mmap;      // use mmap if possible
         bool use_mlock;     // force system to keep model in RAM
         bool check_tensors; // validate model tensor data
+        bool trace;         // enable tracing
     };
 
     // NOTE: changing the default values of parameters marked as [EXPERIMENTAL] may cause crashes or incorrect results in certain configurations
@@ -367,6 +368,7 @@ extern "C" {
         bool keep_split;                     // quantize to the same number of shards
         void * imatrix;                      // pointer to importance matrix data
         void * kv_overrides;                 // pointer to vector containing overrides
+        bool trace;                          // enable tracing
     } llama_model_quantize_params;
 
     typedef struct llama_logit_bias {

@@ -4424,11 +4424,14 @@ struct llama_model_loader {
     std::string arch_name;
     LLM_KV      llm_kv    = LLM_KV(LLM_ARCH_UNKNOWN);
 
-    llama_model_loader(const std::string & fname, bool use_mmap, bool check_tensors, const struct llama_model_kv_override * param_overrides_p) {
-        int trace = 0;
-        if (getenv("LLAMA_TRACE")) {
-            trace = atoi(getenv("LLAMA_TRACE"));
-        }
+    bool trace = 0;
+
+    llama_model_loader(const std::string & fname, bool use_mmap, bool check_tensors, const struct llama_model_kv_override * param_overrides_p, bool trace_) {
+        // int trace = 0;
+        // if (getenv("LLAMA_TRACE")) {
+        //     trace = atoi(getenv("LLAMA_TRACE"));
+        // }
+        trace = trace_;
 
         if (param_overrides_p != nullptr) {
             for (const struct llama_model_kv_override * p = param_overrides_p; p->key[0] != 0; p++) {
@@ -4475,9 +4478,9 @@ struct llama_model_loader {
                 throw std::runtime_error(format("invalid split file: %s", fname.c_str()));
             }
 
-            if (trace > 0) {
-                LLAMA_LOG_INFO("%s: loading additional %d GGUFs\n", __func__, n_split);
-            }
+            
+            // LLAMA_LOG_INFO("%s: loading additional %d GGUFs\n", __func__, n_split);
+            LLAMA_LOG_INFO_TRACE(trace, "%s: loading additional %d GGUFs\n" , __func__, n_split);
 
             char split_path[PATH_MAX] = {0};
             for (idx = 1; idx < n_split; idx++) {
@@ -4512,8 +4515,9 @@ struct llama_model_loader {
                     throw std::runtime_error(format("corrupted model: %d tensors expected but %d found", n_tensors, n_tensors_loaded));
                 }
             }
-
-            LLAMA_LOG_INFO("%s: additional %d GGUFs metadata loaded.\n",  __func__, n_split - 1);
+            // LLAMA_LOG_INFO("%s: additional %d GGUFs metadata loaded.\n",  __func__, n_split - 1);
+            LLAMA_LOG_INFO_TRACE(trace, "%s: additional %d GGUFs metadata loaded.\n", __func__, n_split - 1);
+            
         }
 
         n_kv      = gguf_get_n_kv(meta);
@@ -4533,9 +4537,12 @@ struct llama_model_loader {
             }
             tensor_names.insert(name);
         }
-
-        LLAMA_LOG_INFO("%s: loaded meta data with %d key-value pairs and %d tensors from %s (version %s)\n",
-                __func__, n_kv, n_tensors, fname.c_str(), llama_file_version_name(fver));
+        
+        
+        // LLAMA_LOG_INFO("%s: loaded meta data with %d key-value pairs and %d tensors from %s (version %s)\n",
+        //         __func__, n_kv, n_tensors, fname.c_str(), llama_file_version_name(fver));
+        LLAMA_LOG_INFO_TRACE(trace, "%s: loaded meta data with %d key-value pairs and %d tensors from %s (version %s)\n",
+                    __func__, n_kv, n_tensors, fname.c_str(), llama_file_version_name(fver));
 
         // determine file type based on the number of tensors for each quantization and print meta data
         // TODO: make optional
@@ -4556,10 +4563,10 @@ struct llama_model_loader {
                     type_max   = type;
                 }
 
-                if (trace > 0) {
-                    const uint16_t sid = weights.at(i).idx;
-                    LLAMA_LOG_INFO("%s: - tensor %4d, split %2d: %32s %-8s [ %s ]\n", __func__, i, sid, ggml_get_name(tensor), ggml_type_name(type), llama_format_tensor_shape(tensor).c_str());
-                }
+                
+                const uint16_t sid = weights.at(i).idx;
+                // LLAMA_LOG_INFO("%s: - tensor %4d, split %2d: %32s %-8s [ %s ]\n", __func__, i, sid, ggml_get_name(tensor), ggml_type_name(type), llama_format_tensor_shape(tensor).c_str());
+                LLAMA_LOG_INFO_TRACE(trace, "%s: - tensor %4d, split %2d: %32s %-8s [ %s ]\n", __func__, i, sid, ggml_get_name(tensor), ggml_type_name(type), llama_format_tensor_shape(tensor).c_str());
             }
 
             switch (type_max) {
@@ -4606,9 +4613,8 @@ struct llama_model_loader {
                     ftype = (llama_ftype) gguf_get_val_u32(meta, kid);
                 }
             }
-
-            LLAMA_LOG_INFO("%s: Dumping metadata keys/values. Note: KV overrides do not apply in this output.\n", __func__);
-
+            // LLAMA_LOG_INFO("%s: Dumping metadata keys/values. Note: KV overrides do not apply in this output.\n", __func__);
+            LLAMA_LOG_INFO_TRACE(trace, "%s: Dumping metadata keys/values. Note: KV overrides do not apply in this output.\n", __func__);
             for (int i = 0; i < n_kv; i++) {
                 const char * name           = gguf_get_key(meta, i);
                 const enum gguf_type type   = gguf_get_kv_type(meta, i);
@@ -4623,8 +4629,8 @@ struct llama_model_loader {
                     value = format("%s...", value.substr(0, MAX_VALUE_LEN - 3).c_str());
                 }
                 replace_all(value, "\n", "\\n");
-
-                LLAMA_LOG_INFO("%s: - kv %3d: %42s %-16s = %s\n", __func__, i, name, type_name.c_str(), value.c_str());
+                // LLAMA_LOG_INFO("%s: - kv %3d: %42s %-16s = %s\n", __func__, i, name, type_name.c_str(), value.c_str());
+                LLAMA_LOG_INFO_TRACE(trace, "%s: - kv %3d: %42s %-16s = %s\n", __func__, i, name, type_name.c_str(), value.c_str());
             }
 
             // print type counts
@@ -4632,8 +4638,9 @@ struct llama_model_loader {
                 if (kv.second == 0) {
                     continue;
                 }
-
-                LLAMA_LOG_INFO("%s: - type %4s: %4d tensors\n", __func__, ggml_type_name(kv.first), kv.second);
+                
+                // LLAMA_LOG_INFO("%s: - type %4s: %4d tensors\n", __func__, ggml_type_name(kv.first), kv.second);
+                LLAMA_LOG_INFO_TRACE(trace, "%s: - type %4s: %4d tensors\n", __func__, ggml_type_name(kv.first), kv.second);
             }
         }
 
@@ -9035,7 +9042,7 @@ static int llama_model_load(const std::string & fname, llama_model & model, llam
     model.t_start_us = ggml_time_us();
 
     try {
-        llama_model_loader ml(fname, params.use_mmap, params.check_tensors, params.kv_overrides);
+        llama_model_loader ml(fname, params.use_mmap, params.check_tensors, params.kv_overrides, params.trace);
 
         model.hparams.vocab_only = params.vocab_only;
 
@@ -18370,7 +18377,7 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
         auto v = (std::vector<llama_model_kv_override>*)params->kv_overrides;
         kv_overrides = v->data();
     }
-    llama_model_loader ml(fname_inp, use_mmap, /*check_tensors*/ true, kv_overrides);
+    llama_model_loader ml(fname_inp, use_mmap, /*check_tensors*/ true, kv_overrides, params->trace);
     ml.init_mappings(false); // no prefetching
 
     llama_model model;
