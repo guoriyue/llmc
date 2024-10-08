@@ -34,34 +34,17 @@ void enable_input() {
 // Function to display progress bar with speed
 void show_progress_bar(double percentage, double speed) {
     int bar_width = 50;
-    static int last_output_length = 0; // Keep track of the last output length
-
-    // Create the progress bar string
-    std::ostringstream oss;
-    oss << "[";
+    std::cout << "[";
     int pos = static_cast<int>(bar_width * percentage);
     for (int i = 0; i < bar_width; ++i) {
-        if (i < pos) oss << "=";
-        else if (i == pos) oss << ">";
-        else oss << " ";
+        if (i < pos) std::cout << "=";
+        else if (i == pos) std::cout << ">";
+        else std::cout << " ";
     }
-    // Add percentage and speed to the progress bar string
-    oss << "] " << std::fixed << std::setprecision(2) << (percentage * 100.0) << " % "
-        << std::fixed << std::setprecision(2) << speed << " MB/s";
-
-    // Get the current output as a string
-    std::string output = oss.str();
-
-    // If the current output is shorter than the previous one, add spaces to clear old characters
-    if (output.length() < last_output_length) {
-        output += std::string(last_output_length - output.length(), ' ');
-    }
-
-    // Update the last output length
-    last_output_length = output.length();
-
-    // Print the output in place
-    std::cout << "\r" << output << std::flush;
+    // Set fixed and precision for both percentage and speed
+    std::cout << "] " << std::fixed << std::setprecision(2) << (percentage * 100.0) << " % "
+              << std::fixed << std::setprecision(2) << speed << " MB/s\r";
+    std::cout.flush();
 }
 
 // Callback function to write the downloaded data to a file

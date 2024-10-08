@@ -62,7 +62,7 @@
 // #include "executor.h"
 
 #include "llmc-src/config.h"
-#include "llmc-src/file_manager.h"
+// #include "llmc-src/file_manager.h"
 #include "llmc-src/downloader.h"
 #include "llmc-src/model_manager.h"
 #include "llmc-src/executor.h"
@@ -210,8 +210,6 @@ int main(int argc, char ** argv) {
     auto & sparams = params.sparams;
     // save choice to use color for later
     // (note for later: this is a slightly awkward choice)
-    printf("params.use_color = %d\n", params.use_color);
-    printf("params.simple_io = %d\n", params.simple_io);
     console::init(params.simple_io, params.use_color);
     atexit([]() { console::cleanup(); });
 
@@ -251,14 +249,17 @@ int main(int argc, char ** argv) {
     if (model_path.empty() || params.llmc_setup) {
         // force to reset the model
         printf("Setting up the model for llmc\n");
-        model_path = mm.set_model();
+        params.model = mm.set_model();
     } else if (!file_exists(model_path) || file_is_empty(model_path)) {
         printf("The model path doesn't exist or is empty. Please set a model first.\n");
-        model_path = mm.set_model();
+        params.model = mm.set_model();
     } else if (params.llmc_reset) {
         // mm.set_default_model();
         printf("Resetting to default configuration\n");
+    } else {
+        params.model = model_path;
     }
+    printf("params.model = %s\n", params.model.c_str());
 
     llama_backend_init();
     llama_numa_init(params.numa);
