@@ -283,20 +283,20 @@ static void * ggml_metal_host_malloc(size_t n) {
 }
 
 static struct ggml_backend_metal_context * ggml_metal_init(void) {
-    GGML_LOG_INFO("%s: allocating\n", __func__);
+    // GGML_LOG_INFO("%s: allocating\n", __func__);
 
 #if TARGET_OS_OSX && !GGML_METAL_NDEBUG
     // Show all the Metal device instances in the system
     NSArray * devices = MTLCopyAllDevices();
     for (id<MTLDevice> device in devices) {
-        GGML_LOG_INFO("%s: found device: %s\n", __func__, [[device name] UTF8String]);
+        // GGML_LOG_INFO("%s: found device: %s\n", __func__, [[device name] UTF8String]);
     }
     [devices release]; // since it was created by a *Copy* C method
 #endif
 
     // Pick and show default Metal device
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-    GGML_LOG_INFO("%s: picking default device: %s\n", __func__, [[device name] UTF8String]);
+    // GGML_LOG_INFO("%s: picking default device: %s\n", __func__, [[device name] UTF8String]);
 
     // Configure context
     struct ggml_backend_metal_context * ctx = calloc(1, sizeof(struct ggml_backend_metal_context));
@@ -332,7 +332,7 @@ static struct ggml_backend_metal_context * ggml_metal_init(void) {
         if (try_metallib && path_lib != nil) {
             // pre-compiled library found
             NSURL * libURL = [NSURL fileURLWithPath:path_lib];
-            GGML_LOG_INFO("%s: loading '%s'\n", __func__, [path_lib UTF8String]);
+            // GGML_LOG_INFO("%s: loading '%s'\n", __func__, [path_lib UTF8String]);
 
             metal_library = [ctx->device newLibraryWithURL:libURL error:&error];
             if (error) {
@@ -341,19 +341,19 @@ static struct ggml_backend_metal_context * ggml_metal_init(void) {
             }
         } else {
 #if GGML_METAL_EMBED_LIBRARY
-            GGML_LOG_INFO("%s: using embedded metal library\n", __func__);
+            // GGML_LOG_INFO("%s: using embedded metal library\n", __func__);
 
             extern const char ggml_metallib_start[];
             extern const char ggml_metallib_end[];
 
             NSString * src = [[NSString alloc] initWithBytes:ggml_metallib_start length:(ggml_metallib_end-ggml_metallib_start) encoding:NSUTF8StringEncoding];
 #else
-            GGML_LOG_INFO("%s: default.metallib not found, loading from source\n", __func__);
+            // GGML_LOG_INFO("%s: default.metallib not found, loading from source\n", __func__);
 
             NSString * path_source;
             NSString * path_resource = [[NSProcessInfo processInfo].environment objectForKey:@"GGML_METAL_PATH_RESOURCES"];
 
-            GGML_LOG_INFO("%s: GGML_METAL_PATH_RESOURCES = %s\n", __func__, path_resource ? [path_resource UTF8String] : "nil");
+            // GGML_LOG_INFO("%s: GGML_METAL_PATH_RESOURCES = %s\n", __func__, path_resource ? [path_resource UTF8String] : "nil");
 
             if (path_resource) {
                 path_source = [path_resource stringByAppendingPathComponent:@"ggml-metal.metal"];
@@ -366,7 +366,7 @@ static struct ggml_backend_metal_context * ggml_metal_init(void) {
                 path_source = @"ggml-metal.metal";
             }
 
-            GGML_LOG_INFO("%s: loading '%s'\n", __func__, [path_source UTF8String]);
+            // GGML_LOG_INFO("%s: loading '%s'\n", __func__, [path_source UTF8String]);
 
             NSString * src = [NSString stringWithContentsOfFile:path_source encoding:NSUTF8StringEncoding error:&error];
             if (error) {
@@ -394,7 +394,7 @@ static struct ggml_backend_metal_context * ggml_metal_init(void) {
     }
 
     // print MTL GPU family:
-    GGML_LOG_INFO("%s: GPU name:   %s\n", __func__, [[ctx->device name] UTF8String]);
+    // GGML_LOG_INFO("%s: GPU name:   %s\n", __func__, [[ctx->device name] UTF8String]);
 
     const NSInteger MTLGPUFamilyMetal3 = 5001;
 
@@ -404,21 +404,21 @@ static struct ggml_backend_metal_context * ggml_metal_init(void) {
     {
         for (int i = MTLGPUFamilyApple1 + 20; i >= MTLGPUFamilyApple1; --i) {
             if ([ctx->device supportsFamily:i]) {
-                GGML_LOG_INFO("%s: GPU family: MTLGPUFamilyApple%d  (%d)\n", __func__, i - (int) MTLGPUFamilyApple1 + 1, i);
+                // GGML_LOG_INFO("%s: GPU family: MTLGPUFamilyApple%d  (%d)\n", __func__, i - (int) MTLGPUFamilyApple1 + 1, i);
                 break;
             }
         }
 
         for (int i = MTLGPUFamilyCommon1 + 5; i >= MTLGPUFamilyCommon1; --i) {
             if ([ctx->device supportsFamily:i]) {
-                GGML_LOG_INFO("%s: GPU family: MTLGPUFamilyCommon%d (%d)\n", __func__, i - (int) MTLGPUFamilyCommon1 + 1, i);
+                // GGML_LOG_INFO("%s: GPU family: MTLGPUFamilyCommon%d (%d)\n", __func__, i - (int) MTLGPUFamilyCommon1 + 1, i);
                 break;
             }
         }
 
         for (int i = MTLGPUFamilyMetal3 + 5; i >= MTLGPUFamilyMetal3; --i) {
             if ([ctx->device supportsFamily:i]) {
-                GGML_LOG_INFO("%s: GPU family: MTLGPUFamilyMetal%d  (%d)\n", __func__, i - (int) MTLGPUFamilyMetal3 + 3, i);
+                // GGML_LOG_INFO("%s: GPU family: MTLGPUFamilyMetal%d  (%d)\n", __func__, i - (int) MTLGPUFamilyMetal3 + 3, i);
                 break;
             }
         }
@@ -429,9 +429,9 @@ static struct ggml_backend_metal_context * ggml_metal_init(void) {
 
     ctx->support_simdgroup_mm = [ctx->device supportsFamily:MTLGPUFamilyApple7];
 
-    GGML_LOG_INFO("%s: simdgroup reduction support   = %s\n",       __func__, ctx->support_simdgroup_reduction ? "true" : "false");
-    GGML_LOG_INFO("%s: simdgroup matrix mul. support = %s\n",       __func__, ctx->support_simdgroup_mm ? "true" : "false");
-    GGML_LOG_INFO("%s: hasUnifiedMemory              = %s\n",       __func__, ctx->device.hasUnifiedMemory ? "true" : "false");
+    // GGML_LOG_INFO("%s: simdgroup reduction support   = %s\n",       __func__, ctx->support_simdgroup_reduction ? "true" : "false");
+    // GGML_LOG_INFO("%s: simdgroup matrix mul. support = %s\n",       __func__, ctx->support_simdgroup_mm ? "true" : "false");
+    // GGML_LOG_INFO("%s: hasUnifiedMemory              = %s\n",       __func__, ctx->device.hasUnifiedMemory ? "true" : "false");
 
     ctx->capture_next_compute = false;
     ctx->capture_started = false;
@@ -445,13 +445,13 @@ static struct ggml_backend_metal_context * ggml_metal_init(void) {
 
 #if TARGET_OS_OSX || (TARGET_OS_IOS && __clang_major__ >= 15)
     if (@available(macOS 10.12, iOS 16.0, *)) {
-        GGML_LOG_INFO("%s: recommendedMaxWorkingSetSize  = %8.2f MB\n", __func__, ctx->device.recommendedMaxWorkingSetSize / 1e6);
+        // GGML_LOG_INFO("%s: recommendedMaxWorkingSetSize  = %8.2f MB\n", __func__, ctx->device.recommendedMaxWorkingSetSize / 1e6);
     }
 #elif TARGET_OS_OSX
     if (ctx->device.maxTransferRate != 0) {
-        GGML_LOG_INFO("%s: maxTransferRate               = %8.2f MB/s\n", __func__, ctx->device.maxTransferRate / 1e6);
+        // GGML_LOG_INFO("%s: maxTransferRate               = %8.2f MB/s\n", __func__, ctx->device.maxTransferRate / 1e6);
     } else {
-        GGML_LOG_INFO("%s: maxTransferRate               = built-in GPU\n", __func__);
+        // GGML_LOG_INFO("%s: maxTransferRate               = built-in GPU\n", __func__);
     }
 #endif
 
@@ -677,7 +677,7 @@ static struct ggml_backend_metal_context * ggml_metal_init(void) {
 }
 
 static void ggml_metal_free(struct ggml_backend_metal_context * ctx) {
-    GGML_LOG_INFO("%s: deallocating\n", __func__);
+    // GGML_LOG_INFO("%s: deallocating\n", __func__);
 
     for (int i = 0; i < GGML_METAL_KERNEL_TYPE_COUNT; ++i) {
         [ctx->kernels[i].pipeline release];

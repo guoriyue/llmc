@@ -7176,8 +7176,8 @@ static bool llm_load_tensors(
         model.ctxs.push_back(ctx);
     }
 
-    LLAMA_LOG_INFO("%s: ggml ctx size = %7.2f MiB\n", __func__, model.ctxs.size()*ctx_size/1024.0/1024.0);
-
+    // LLAMA_LOG_INFO("%s: ggml ctx size = %7.2f MiB\n", __func__, model.ctxs.size()*ctx_size/1024.0/1024.0);
+    LLAMA_LOG_INFO_TRACE(hparams.trace, "%s: ggml ctx size = %7.2f MiB\n", __func__, model.ctxs.size()*ctx_size/1024.0/1024.0);
     // create tensors for the weights
     {
         // note: cast to int64_t since we will use these for the tensor dimensions
@@ -9080,20 +9080,24 @@ static bool llm_load_tensors(
     if (llama_supports_gpu_offload()) {
         const int n_gpu = std::min(n_gpu_layers, int(hparams.n_layer));
 
-        LLAMA_LOG_INFO("%s: offloading %d repeating layers to GPU\n", __func__, n_gpu);
+        // LLAMA_LOG_INFO("%s: offloading %d repeating layers to GPU\n", __func__, n_gpu);
+        LLAMA_LOG_INFO_TRACE(model.hparams.trace, "%s: offloading %d repeating layers to GPU\n", __func__, n_gpu);
         if (n_gpu_layers > (int) hparams.n_layer) {
-            LLAMA_LOG_INFO("%s: offloading non-repeating layers to GPU\n", __func__);
+            // LLAMA_LOG_INFO("%s: offloading non-repeating layers to GPU\n", __func__);
+            LLAMA_LOG_INFO_TRACE(model.hparams.trace, "%s: offloading non-repeating layers to GPU\n", __func__);
         }
 
         const int max_backend_supported_layers = hparams.n_layer + 1;
         const int max_offloadable_layers       = hparams.n_layer + 1;
 
-        LLAMA_LOG_INFO("%s: offloaded %d/%d layers to GPU\n", __func__, std::min(n_gpu_layers, max_offloadable_layers), max_backend_supported_layers);
+        // LLAMA_LOG_INFO("%s: offloaded %d/%d layers to GPU\n", __func__, std::min(n_gpu_layers, max_offloadable_layers), max_backend_supported_layers);
+        LLAMA_LOG_INFO_TRACE(model.hparams.trace, "%s: offloaded %d/%d layers to GPU\n", __func__, std::min(n_gpu_layers, max_offloadable_layers), max_backend_supported_layers);
     }
 
     // print memory requirements
     for (ggml_backend_buffer_t buf : model.bufs) {
-        LLAMA_LOG_INFO("%s: %10s buffer size = %8.2f MiB\n", __func__, ggml_backend_buffer_name(buf), ggml_backend_buffer_get_size(buf) / 1024.0 / 1024.0);
+        // LLAMA_LOG_INFO("%s: %10s buffer size = %8.2f MiB\n", __func__, ggml_backend_buffer_name(buf), ggml_backend_buffer_get_size(buf) / 1024.0 / 1024.0);
+        LLAMA_LOG_INFO_TRACE(model.hparams.trace, "%s: %10s buffer size = %8.2f MiB\n", __func__, ggml_backend_buffer_name(buf), ggml_backend_buffer_get_size(buf) / 1024.0 / 1024.0);
     }
 
     // populate tensors_by_name
@@ -9155,7 +9159,8 @@ static int llama_model_load(const std::string & fname, llama_model & model, llam
         }
 
         if (params.vocab_only) {
-            LLAMA_LOG_INFO("%s: vocab only - skipping tensors\n", __func__);
+            // LLAMA_LOG_INFO("%s: vocab only - skipping tensors\n", __func__);
+            LLAMA_LOG_INFO_TRACE(model.hparams.trace, "%s: vocab only - skipping tensors\n", __func__);
             return 0;
         }
 
@@ -10347,7 +10352,7 @@ struct llm_build_context {
             i += nm - 1;
         }
 
-        //LLAMA_LOG_INFO("gf->n_nodes = %d\n", gf->n_nodes);
+        // LLAMA_LOG_INFO("gf->n_nodes = %d\n", gf->n_nodes);
 
         return gf;
     }
@@ -17082,7 +17087,8 @@ static size_t llama_output_reserve(llama_context & lctx, size_t n_outputs) {
         if (lctx.buf_output) {
 #ifndef NDEBUG
             // This doesn't happen often, but may be annoying in some cases (like the HellaSwag benchmark)
-            LLAMA_LOG_INFO("%s: reallocating output buffer from size %.02f MiB to %.02f MiB\n", __func__, prev_size / 1024.0 / 1024.0, new_size / 1024.0 / 1024.0);
+            // LLAMA_LOG_INFO("%s: reallocating output buffer from size %.02f MiB to %.02f MiB\n", __func__, prev_size / 1024.0 / 1024.0, new_size / 1024.0 / 1024.0);
+            LLAMA_LOG_INFO_TRACE(hparams.trace, "%s: reallocating output buffer from size %.02f MiB to %.02f MiB\n", __func__, prev_size / 1024.0 / 1024.0, new_size / 1024.0 / 1024.0);
 #endif
             ggml_backend_buffer_free(lctx.buf_output);
             lctx.buf_output = nullptr;
@@ -17476,7 +17482,7 @@ static int llama_decode_internal(
 
         // queue defragmentation for next llama_kv_cache_update
         if (fragmentation > cparams.defrag_thold) {
-            //LLAMA_LOG_INFO("fragmentation: %.2f\n", fragmentation);
+            // LLAMA_LOG_INFO("fragmentation: %.2f\n", fragmentation);
 
             llama_kv_cache_defrag(kv_self);
         }
@@ -17787,7 +17793,7 @@ static void llama_kv_cache_defrag_internal(struct llama_context & lctx) {
             break;
         }
 
-        //LLAMA_LOG_INFO("(tmp log) KV defrag: move [%u, %u) to [%u, %u)\n", is, i1 + 1, i0, i0 + nh);
+        // LLAMA_LOG_INFO("(tmp log) KV defrag: move [%u, %u) to [%u, %u)\n", is, i1 + 1, i0, i0 + nh);
 
         i0 += nh - 1;
     }
@@ -17796,9 +17802,9 @@ static void llama_kv_cache_defrag_internal(struct llama_context & lctx) {
         return;
     }
 
-    //LLAMA_LOG_INFO("(tmp log) KV defrag cell moves: %u\n", n_moves);
+    // LLAMA_LOG_INFO("(tmp log) KV defrag cell moves: %u\n", n_moves);
 
-    //LLAMA_LOG_INFO("expected gf nodes: %u\n", 6*n_moves*n_layer);
+    // LLAMA_LOG_INFO("expected gf nodes: %u\n", 6*n_moves*n_layer);
 
 #if 0
     // CPU defrag
@@ -17882,7 +17888,7 @@ static void llama_kv_cache_defrag_internal(struct llama_context & lctx) {
 
     //const int64_t t_end = ggml_time_us();
 
-    //LLAMA_LOG_INFO("(tmp log) KV defrag time: %.3f ms\n", (t_end - t_start)/1000.0);
+    // LLAMA_LOG_INFO("(tmp log) KV defrag time: %.3f ms\n", (t_end - t_start)/1000.0);
 }
 
 static void llama_kv_cache_update_internal(struct llama_context & lctx) {
@@ -18479,7 +18485,8 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
     if (params->imatrix) {
         imatrix_data = static_cast<const std::unordered_map<std::string, std::vector<float>>*>(params->imatrix);
         if (imatrix_data) {
-            LLAMA_LOG_INFO("================================ Have weights data with %d entries\n",int(imatrix_data->size()));
+            // LLAMA_LOG_INFO("================================ Have weights data with %d entries\n",int(imatrix_data->size()));
+            LLAMA_LOG_INFO_TRACE(model.hparams.trace, "================================ Have weights data with %d entries\n",int(imatrix_data->size()));
             qs.has_imatrix = true;
             // check imatrix for nans or infs
             for (const auto & kv : *imatrix_data) {
@@ -18642,11 +18649,16 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
         }
         ml.load_data_for(tensor);
 
-        LLAMA_LOG_INFO("[%4d/%4d] %36s - [%s], type = %6s, ",
-               ++idx, ml.n_tensors,
-               ggml_get_name(tensor),
-               llama_format_tensor_shape(tensor).c_str(),
-               ggml_type_name(tensor->type));
+        // LLAMA_LOG_INFO("[%4d/%4d] %36s - [%s], type = %6s, ",
+        //        ++idx, ml.n_tensors,
+        //        ggml_get_name(tensor),
+        //        llama_format_tensor_shape(tensor).c_str(),
+        //        ggml_type_name(tensor->type));
+        LLAMA_LOG_INFO_TRACE(model.hparams.trace, "[%4d/%4d] %36s - [%s], type = %6s, ",
+                ++idx, ml.n_tensors,
+                ggml_get_name(tensor),
+                llama_format_tensor_shape(tensor).c_str(),
+                ggml_type_name(tensor->type));
 
         // This used to be a regex, but <regex> has an extreme cost to compile times.
         bool quantize = name.rfind("weight") == name.size() - 6; // ends with 'weight'?
@@ -18709,7 +18721,8 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
             new_type = tensor->type;
             new_data = tensor->data;
             new_size = ggml_nbytes(tensor);
-            LLAMA_LOG_INFO("size = %8.3f MB\n", ggml_nbytes(tensor)/1024.0/1024.0);
+            // LLAMA_LOG_INFO("size = %8.3f MB\n", ggml_nbytes(tensor)/1024.0/1024.0);
+            LLAMA_LOG_INFO_TRACE(model.hparams.trace, "size = %8.3f MB\n", ggml_nbytes(tensor)/1024.0/1024.0);
         } else {
             const int64_t nelements = ggml_nelements(tensor);
 
@@ -18717,12 +18730,15 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
             if (imatrix_data) {
                 auto it = imatrix_data->find(tensor->name);
                 if (it == imatrix_data->end()) {
-                    LLAMA_LOG_INFO("\n====== %s: did not find weights for %s\n", __func__, tensor->name);
+                    // LLAMA_LOG_INFO("\n====== %s: did not find weights for %s\n", __func__, tensor->name);
+                    LLAMA_LOG_INFO_TRACE(model.hparams.trace, "\n====== %s: did not find weights for %s\n", __func__, tensor->name);
                 } else {
                     if (it->second.size() == (size_t)tensor->ne[0]*tensor->ne[2]) {
                         imatrix = it->second.data();
                     } else {
-                        LLAMA_LOG_INFO("\n====== %s: imatrix size %d is different from tensor size %d for %s\n", __func__,
+                        // LLAMA_LOG_INFO("\n====== %s: imatrix size %d is different from tensor size %d for %s\n", __func__,
+                        //         int(it->second.size()), int(tensor->ne[0]*tensor->ne[2]), tensor->name);
+                        LLAMA_LOG_INFO_TRACE(model.hparams.trace, "\n====== %s: imatrix size %d is different from tensor size %d for %s\n", __func__,
                                 int(it->second.size()), int(tensor->ne[0]*tensor->ne[2]), tensor->name);
 
                         // this can happen when quantizing an old mixtral model with split tensors with a new incompatible imatrix
@@ -18768,7 +18784,8 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
                 else if (new_type == GGML_TYPE_Q4_0_4_4 || new_type == GGML_TYPE_Q4_0_4_8) chunk_size_multiplier = 4;
             }
 
-            LLAMA_LOG_INFO("converting to %s .. ", ggml_type_name(new_type));
+            // LLAMA_LOG_INFO("converting to %s .. ", ggml_type_name(new_type));
+            LLAMA_LOG_INFO_TRACE(model.hparams.trace, "converting to %s .. ", ggml_type_name(new_type));
             fflush(stdout);
 
             if (work.size() < (size_t)nelements * 4) {
@@ -18796,7 +18813,8 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
 
                 new_size += llama_tensor_quantize_internal(new_type, f32_data_03, new_data_03, chunk_size, nrows, n_per_row, imatrix_03, workers, nthread_use);
             }
-            LLAMA_LOG_INFO("size = %8.2f MiB -> %8.2f MiB\n", ggml_nbytes(tensor)/1024.0/1024.0, new_size/1024.0/1024.0);
+            // LLAMA_LOG_INFO("size = %8.2f MiB -> %8.2f MiB\n", ggml_nbytes(tensor)/1024.0/1024.0, new_size/1024.0/1024.0);
+            LLAMA_LOG_INFO_TRACE(model.hparams.trace, "size = %8.2f MiB -> %8.2f MiB\n", ggml_nbytes(tensor)/1024.0/1024.0, new_size/1024.0/1024.0);
         }
         total_size_org += ggml_nbytes(tensor);
         total_size_new += new_size;
@@ -18814,8 +18832,10 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
         gguf_free(c);
     }
 
-    LLAMA_LOG_INFO("%s: model size  = %8.2f MB\n", __func__, total_size_org/1024.0/1024.0);
-    LLAMA_LOG_INFO("%s: quant size  = %8.2f MB\n", __func__, total_size_new/1024.0/1024.0);
+    // LLAMA_LOG_INFO("%s: model size  = %8.2f MB\n", __func__, total_size_org/1024.0/1024.0);
+    // LLAMA_LOG_INFO("%s: quant size  = %8.2f MB\n", __func__, total_size_new/1024.0/1024.0);
+    LLAMA_LOG_INFO_TRACE(model.hparams.trace, "%s: model size  = %8.2f MB\n", __func__, total_size_org/1024.0/1024.0);
+    LLAMA_LOG_INFO_TRACE(model.hparams.trace, "%s: quant size  = %8.2f MB\n", __func__, total_size_new/1024.0/1024.0);
 
     if (qs.n_fallback > 0) {
         LLAMA_LOG_WARN("%s: WARNING: %d of %d tensor(s) required fallback quantization\n",
@@ -18824,7 +18844,8 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
 }
 
 static void llama_lora_adapter_init_internal(struct llama_model * model, const char * path_lora, struct llama_lora_adapter & adapter) {
-    LLAMA_LOG_INFO("%s: loading lora adapter from '%s' ...\n", __func__, path_lora);
+    // LLAMA_LOG_INFO("%s: loading lora adapter from '%s' ...\n", __func__, path_lora);
+    LLAMA_LOG_INFO_TRACE(model->hparams.trace, "%s: loading lora adapter from '%s' ...\n", __func__, path_lora);
 
     ggml_context * ctx = nullptr;
     struct gguf_init_params meta_gguf_params = {
@@ -18969,7 +18990,8 @@ static void llama_lora_adapter_init_internal(struct llama_model * model, const c
                 ggml_free(ctx);
                 throw std::runtime_error("failed to allocate buffer for lora adapter\n");
             }
-            LLAMA_LOG_INFO("%s: %10s LoRA buffer size = %8.2f MiB\n", __func__, ggml_backend_buffer_name(buf), ggml_backend_buffer_get_size(buf)/1024.0/1024.0);
+            // LLAMA_LOG_INFO("%s: %10s LoRA buffer size = %8.2f MiB\n", __func__, ggml_backend_buffer_name(buf), ggml_backend_buffer_get_size(buf)/1024.0/1024.0);
+            LLAMA_LOG_INFO_TRACE(model->hparams.trace, "%s: %10s LoRA buffer size = %8.2f MiB\n", __func__, ggml_backend_buffer_name(buf), ggml_backend_buffer_get_size(buf)/1024.0/1024.0);
             adapter.ctxs.push_back(ctx_dev);
             adapter.bufs.push_back(buf);
         }
@@ -18995,7 +19017,8 @@ static void llama_lora_adapter_init_internal(struct llama_model * model, const c
         }
     }
 
-    LLAMA_LOG_INFO("%s: loaded %ld tensors from lora file\n", __func__, adapter.ab_map.size()*2);
+    // LLAMA_LOG_INFO("%s: loaded %ld tensors from lora file\n", __func__, adapter.ab_map.size()*2);
+    LLAMA_LOG_INFO_TRACE(model->hparams.trace, "%s: loaded %ld tensors from lora file\n", __func__, adapter.ab_map.size()*2);
 
     // free ctx for reading gguf
     gguf_free(ctx_gguf);
@@ -19235,7 +19258,8 @@ struct llama_model * llama_load_model_from_file(
         if (status == -1) {
             LLAMA_LOG_ERROR("%s: failed to load model\n", __func__);
         } else if (status == -2) {
-            LLAMA_LOG_INFO("%s: cancelled model load\n", __func__);
+            // LLAMA_LOG_INFO("%s: cancelled model load\n", __func__);
+            LLAMA_LOG_INFO_TRACE(model->hparams.trace, "%s: cancelled model load\n", __func__);
         }
         delete model;
         return nullptr;
