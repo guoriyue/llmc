@@ -2033,7 +2033,7 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
         {"--setup"},
-        "Set up your llmc session: choose or customize the model",
+        "Set up your llmc: choose or customize the model",
         [](gpt_params & params) {
             params.llmc_setup = true;
         }
@@ -2046,12 +2046,26 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     //     }
     // ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
-        {"--show-explanations"},
-        "Show explanations in the output",
+        {"--show-config"},
+        "Show llmc configuration",
         [](gpt_params & params) {
-            params.llmc_show_explanations = true;
+            params.llmc_show_config = true;
         }
     ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--no-explanations"},
+        "Disable explanations",
+        [](gpt_params & params) {
+            params.llmc_show_explanations = false;
+        }
+    ).set_examples({LLMC_MAIN}));
+    // add_opt(llama_arg(
+    //     {"--show-explanations"},
+    //     "Enable explanations",
+    //     [](gpt_params & params) {
+    //         params.llmc_show_explanations = true;
+    //     }
+    // ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
         {"--trace"},
         "Enable tracing",

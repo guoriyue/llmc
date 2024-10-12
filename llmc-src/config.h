@@ -27,5 +27,10 @@ If there are multiple valid commands, return each one in a separate <command> bl
 //     // static std::string read_model_path();
 //     // static void save_model_path(const std::string& path);
 // };
+//  named CodeGeeX
+
+// ./llmc "<|system|>
+// You are an intelligent command line tool assistant. You will answer any questions users have about programming, commands, and computers, and provide commands that is formatted correctly, executable, accurate, and secure, and offer detailed explanations when necessary. Please answer in English. <|user|>
+// show all dockers<|assistant|>" -c 2048
 
 #endif // CONFIG_MANAGER_H

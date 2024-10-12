@@ -182,6 +182,24 @@ std::string trim(const std::string &str) {
     return str.substr(start, end - start + 1);
 }
 
+void model_manager::show_config() {
+    std::string config_path = fs_get_cache_file(CONFIG_FILE);
+    std::ifstream
+        infile(config_path);
+    if (!infile.is_open()) {
+        std::cout << "Error: Unable to open the config file." << std::endl;
+        return;
+    }
+    nlohmann::json config_dict;
+    infile >> config_dict;  // The >> operator automatically parses the JSON file content
+    infile.close();  // Close the file
+    for (auto it = config_dict.begin(); it != config_dict.end(); ++it) {
+        std::cout << it.key() << ": " << it.value() << std::endl;
+    }
+    // std::string model_path = config_dict["model_path"];
+    // std::cout << "Current model path: " << model_path << std::endl;
+}
+
 void model_manager::print_models(const std::vector<std::string>& models, std::size_t current_choice) {
     // Move the cursor up by the number of model lines to overwrite them
     if (first_call_print_models) {

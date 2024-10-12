@@ -344,12 +344,13 @@ struct gpt_params {
     bool batched_bench_output_jsonl = false;
     
     // llmc args
-    bool llmc_show_explanations = false;
+    // bool llmc_show_explanations = true;
+    bool llmc_show_explanations = true;
     bool llmc_setup = false;
+    bool llmc_show_config = false;
     // std::string llmc_default_model = "";
     // std::string llmc_default_prompt = "";
     bool usage             = false; // print usage
-    bool llmc_reset        = false; // reset the model
     bool trace             = false; // enable trace mode
 };
 

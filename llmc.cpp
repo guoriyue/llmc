@@ -183,7 +183,7 @@ int main(int argc, char ** argv) {
     if (params.rope_freq_scale != 0.0) {
         // LOG_WRN("%s: warning: scaling RoPE frequency by %g.\n", __func__, params.rope_freq_scale);
     }
-    printf("params.model: %s\n", params.model.c_str());
+    // printf("params.model: %s\n", params.model.c_str());
     // // LOG_INF("%s: llama backend init\n", __func__);
 
     model_manager mm = model_manager();
@@ -191,14 +191,11 @@ int main(int argc, char ** argv) {
     if (params.model == DEFAULT_MODEL_PATH) {
         // users do not explicitly set a model
         std::string model_path = mm.read_model_path();
-        printf("model_path: AAA%sAAA\n", model_path.c_str());
         if (model_path.empty() || params.llmc_setup) {
             // force to reset the model
             printf("Setting up the model for llmc\n");
             params.model = mm.set_model();
         } else if (!file_exists(model_path) || file_is_empty(model_path)) {
-            printf("file_exists: %d\n", file_exists(model_path));
-            printf("file_is_empty: %d\n", file_is_empty(model_path));
             printf("The model path doesn't exist or is empty. Please set a model first.\n");
             params.model = mm.set_model();
         } else {
@@ -206,11 +203,17 @@ int main(int argc, char ** argv) {
         }
     }
 
+    if (params.llmc_show_config) {
+        mm.show_config();
+        return 0;
+    }
     // llmc_reset
     if (params.prompt == "") {
         printf("Prompt is empty\n");
         return 0;
     }
+
+    params.system_prompt = "You are a command line tool designed to assist developers in generating accurate and executable shell commands. Your task is to interpret developer requests and translate them into proper command-line syntax, ensuring correctness, efficiency, and compatibility with common development environments. Always provide clear and concise commands, and include explanations when necessary. Please respond in English.";
 
     llama_backend_init();
     llama_numa_init(params.numa);
@@ -571,8 +574,7 @@ int main(int argc, char ** argv) {
         embd_inp.clear();
         embd_inp.push_back(decoder_start_token_id);
     }
-    // printf("params.model: %s\n", params.model.c_str());
-    // printf("params.n_ctx: %d\n", params.n_ctx);
+    
     while ((n_remain != 0 && !is_antiprompt) || params.interactive) {
         // predict
         if (!embd.empty()) {
@@ -748,7 +750,10 @@ int main(int argc, char ** argv) {
                 const std::string token_str = llama_token_to_piece(ctx, id, params.special);
 
                 // Console/Stream Output
-                LOG("%s", token_str.c_str());
+                if (params.llmc_show_explanations) {
+                    LOG("%s", token_str.c_str());
+                }
+                
 
                 // Record Displayed Tokens To Log
                 // Note: Generated tokens are created one by one hence this check
@@ -949,7 +954,7 @@ int main(int argc, char ** argv) {
             is_interacting = true;
         }
     }
-
+    
     if (!path_session.empty() && params.prompt_cache_all && !params.prompt_cache_ro) {
         LOG("\n%s: saving final output to session file '%s'\n", __func__, path_session.c_str());
         llama_state_save_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.size());
