@@ -375,7 +375,7 @@ void gpt_init() {
     const char * build_type = " (debug)";
 #endif
 
-    LOG_INF("build: %d (%s) with %s for %s%s\n", LLAMA_BUILD_NUMBER, LLAMA_COMMIT, LLAMA_COMPILER, LLAMA_BUILD_TARGET, build_type);
+    // LOG_INF("build: %d (%s) with %s for %s%s\n", LLAMA_BUILD_NUMBER, LLAMA_COMMIT, LLAMA_COMPILER, LLAMA_BUILD_TARGET, build_type);
 }
 
 std::string gpt_params_get_system_info(const gpt_params & params) {
@@ -839,7 +839,6 @@ struct llama_init_result llama_init_from_gpt_params(gpt_params & params) {
     }
 
     auto cparams = llama_context_params_from_gpt_params(params);
-
     llama_context * lctx = llama_new_context_with_model(model, cparams);
     if (lctx == NULL) {
         LOG_ERR("%s: failed to create context with model '%s'\n", __func__, params.model.c_str());
@@ -1375,7 +1374,7 @@ struct llama_model * llama_load_model_from_url(
         }
     }
 
-    return llama_load_model_from_file(path_model, params);
+    return path_model, params);
 }
 
 struct llama_model * llama_load_model_from_hf(

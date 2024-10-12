@@ -18,8 +18,8 @@ Output: <command>git filter-branch --index-filter 'git rm -r --cached --ignore-u
 Instructions: \n\
 Generate the appropriate command for the following task, and ensure that **only valid command(s)** are wrapped inside <command> tags. \n\
 If there are multiple valid commands, return each one in a separate <command> block. \n\
-**Do not wrap explanations, suggestions, or notes inside <command> tags**. Those should be outside the command blocks.\n"
-
+**Do not wrap explanations, suggestions, or notes inside <command> tags**. Those should be outside the command blocks.\n\
+**Do not repreat the input in the output**. \n"
 // #include <string>
 
 // class config {

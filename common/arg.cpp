@@ -15,6 +15,8 @@
 
 #include "json-schema-to-grammar.h"
 
+
+
 using json = nlohmann::ordered_json;
 
 llama_arg & llama_arg::set_examples(std::initializer_list<enum llama_example> examples) {
@@ -167,6 +169,9 @@ static void gpt_params_handle_model_default(gpt_params & params) {
     }
 }
 
+
+
+
 //
 // CLI argument parsing functions
 //
@@ -205,6 +210,7 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
         }
     }
 
+    
     // handle command line arguments
     auto check_arg = [&](int i) {
         if (i+1 >= argc) {
@@ -216,6 +222,7 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
     // allow user to pass prompt as first argument
     if (argc_start_idx == 2) {
         ctx_arg.params.prompt = argv[1];
+        // ctx_arg.params.prompt = PROMPT_CMD_GEN + ctx_arg.params.prompt;
     }
 
     for (int i = argc_start_idx; i < argc; i++) {
@@ -331,13 +338,19 @@ static void gpt_params_print_usage(gpt_params_context & ctx_arg) {
         printf("\n\n----- example-specific params -----\n\n");
         print_options(specific_options);
     } else {
-        printf("If you'd like to explore more advanced model options, pass --model-help or --model-usage for additional usage instructions.\n\n");
+        // printf("If you'd like to explore more advanced model options, pass --model-help or --model-usage for additional usage instructions.\n\n");
     }
 }
 
 bool gpt_params_parse(int argc, char ** argv, gpt_params & params, llama_example ex, void(*print_usage)(int, char **)) {
     auto ctx_arg = gpt_params_parser_init(params, ex, print_usage);
     const gpt_params params_org = ctx_arg.params; // the example can modify the default params
+
+    if (argc == 1) {
+        // if no arguments are passed, print usage
+        gpt_params_print_usage(ctx_arg);
+        exit(0);
+    }
 
     try {
         if (!gpt_params_parse_ex(argc, argv, ctx_arg)) {
@@ -390,13 +403,6 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
         }
     };
 
-    add_opt(llama_arg(
-        {"--model-help", "--model-usage"},
-        "print llm model usage and exit",
-        [](gpt_params & params) {
-            params.model_usage = true;
-        }
-    ));
     add_opt(llama_arg(
         {"--version"},
         "show version and build info",
@@ -2020,7 +2026,7 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     ).set_env("LLAMA_LOG_TIMESTAMPS"));
     add_opt(llama_arg(
         {"-h", "--help", "--usage"},
-        "print usage and exit",
+        "Print llmc usage",
         [](gpt_params & params) {
             params.usage = true;
         }
@@ -2032,13 +2038,13 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
             params.llmc_setup = true;
         }
     ).set_examples({LLMC_MAIN}));
-    add_opt(llama_arg(
-        {"--reset"},
-        "Reset llmc to its default model and prompt",
-        [](gpt_params & params) {
-            params.llmc_reset = true;
-        }
-    ).set_examples({LLMC_MAIN}));
+    // add_opt(llama_arg(
+    //     {"--reset"},
+    //     "Reset llmc to its default model and prompt",
+    //     [](gpt_params & params) {
+    //         params.llmc_reset = true;
+    //     }
+    // ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
         {"--show-explanations"},
         "Show explanations in the output",
@@ -2053,6 +2059,14 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
             params.trace = true;
         }
     ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--model-help", "--model-usage"},
+        "Print detailed model usage",
+        [](gpt_params & params) {
+            params.model_usage = true;
+            params.usage = true;
+        }
+    ).set_examples({LLMC_MAIN}));;
     // add_opt(llama_arg(
     //     {"--default-model"}, "FNAME",
     //     "Set default model for llmc",

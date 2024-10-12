@@ -1,71 +1,13 @@
-// int main(int argc, char* argv[]) {
-
-//     // Default values
-//     int max_tokens = 128;
-//     bool show_explain = false;
-//     bool show_help_flag = false;
-//     bool set_model_flag = true;
-//     std::string selected_model;
-//     std::string custom_prompt;
-
-//     model_manager mm = model_manager();
-
-//     // Argument parsing
-//     for (int i = 1; i < argc; ++i) {
-//         std::string arg = argv[i];
-
-//         if (arg == "-h") {
-//             show_help_flag = true;
-//         } else if (arg == "-set-model") {
-//             set_model_flag = true;
-//         } else if (arg == "-n" && i + 1 < argc) {
-//             max_tokens = std::atoi(argv[++i]);
-//         } else if (arg == "-s") {
-//             show_explain = true;
-//         }
-//     }
-
-//     if (show_help_flag) {
-//         mm.show_help();
-//         return 0;
-//     }
-
-//     if (set_model_flag) {
-//         selected_model = mm.set_model();
-//         std::cout << "Selected model: " << selected_model << std::endl;
-//         if (!custom_prompt.empty()) {
-//             std::cout << "Custom prompt: " << custom_prompt << std::endl;
-//         }
-//     }
-
-//     mm.set_show_explanation(show_explain);
-
-//     return 0;
-//     // std::string cache_dir = file_manager::get_cache_directory(CMD_NAME);
-//     // std::string model_path = get_valid_model_path(cache_dir, MODEL_URL, MODEL_PATH);
-//     // printf("model_path: %s\n", model_path.c_str());
-//     // executor::execute_embedded_executable(model_path, argc, argv);
-
-//     // return 0;
-// }
-
 #include "arg.h"
 #include "common.h"
 #include "console.h"
 #include "log.h"
 #include "sampling.h"
 #include "llama.h"
-// #include "config.h"
-// #include "file_manager.h"
-// #include "downloader.h"
-// #include "model_manager.h"
-// #include "executor.h"
 
 #include "llmc-src/config.h"
-// #include "llmc-src/file_manager.h"
 #include "llmc-src/downloader.h"
 #include "llmc-src/model_manager.h"
-#include "llmc-src/executor.h"
 
 #include <iostream>
 #include <string>
@@ -241,25 +183,34 @@ int main(int argc, char ** argv) {
     if (params.rope_freq_scale != 0.0) {
         // LOG_WRN("%s: warning: scaling RoPE frequency by %g.\n", __func__, params.rope_freq_scale);
     }
-
+    printf("params.model: %s\n", params.model.c_str());
     // // LOG_INF("%s: llama backend init\n", __func__);
+
     model_manager mm = model_manager();
-    std::string model_path = mm.read_model_path();
-    printf("model_path = %s\n", model_path.c_str());
-    if (model_path.empty() || params.llmc_setup) {
-        // force to reset the model
-        printf("Setting up the model for llmc\n");
-        params.model = mm.set_model();
-    } else if (!file_exists(model_path) || file_is_empty(model_path)) {
-        printf("The model path doesn't exist or is empty. Please set a model first.\n");
-        params.model = mm.set_model();
-    } else if (params.llmc_reset) {
-        // mm.set_default_model();
-        printf("Resetting to default configuration\n");
-    } else {
-        params.model = model_path;
+
+    if (params.model == DEFAULT_MODEL_PATH) {
+        // users do not explicitly set a model
+        std::string model_path = mm.read_model_path();
+        printf("model_path: AAA%sAAA\n", model_path.c_str());
+        if (model_path.empty() || params.llmc_setup) {
+            // force to reset the model
+            printf("Setting up the model for llmc\n");
+            params.model = mm.set_model();
+        } else if (!file_exists(model_path) || file_is_empty(model_path)) {
+            printf("file_exists: %d\n", file_exists(model_path));
+            printf("file_is_empty: %d\n", file_is_empty(model_path));
+            printf("The model path doesn't exist or is empty. Please set a model first.\n");
+            params.model = mm.set_model();
+        } else {
+            params.model = model_path;
+        }
     }
-    printf("params.model = %s\n", params.model.c_str());
+
+    // llmc_reset
+    if (params.prompt == "") {
+        printf("Prompt is empty\n");
+        return 0;
+    }
 
     llama_backend_init();
     llama_numa_init(params.numa);
@@ -620,7 +571,8 @@ int main(int argc, char ** argv) {
         embd_inp.clear();
         embd_inp.push_back(decoder_start_token_id);
     }
-
+    // printf("params.model: %s\n", params.model.c_str());
+    // printf("params.n_ctx: %d\n", params.n_ctx);
     while ((n_remain != 0 && !is_antiprompt) || params.interactive) {
         // predict
         if (!embd.empty()) {
@@ -986,7 +938,7 @@ int main(int argc, char ** argv) {
 
         // end of generation
         if (!embd.empty() && llama_token_is_eog(model, embd.back()) && !(params.interactive)) {
-            LOG(" [end of text]\n");
+            // LOG(" [end of text]\n");
             break;
         }
 
@@ -1003,7 +955,7 @@ int main(int argc, char ** argv) {
         llama_state_save_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.size());
     }
 
-    LOG("\n\n");
+    // LOG("\n\n");
     // gpt_perf_print(ctx, smpl);
     // write_logfile(ctx, params, model, input_tokens, output_ss.str(), output_tokens);
 

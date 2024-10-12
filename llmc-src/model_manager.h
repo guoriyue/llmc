@@ -30,6 +30,7 @@ public:
     std::string read_model_path();
     void save_model_path(const std::string& path);
     void print_models(const std::vector<std::string>& models, std::size_t current_choice);
+    std::string editable_input();
 };
 
 #endif // MODEL_MANAGER_H
