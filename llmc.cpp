@@ -9,6 +9,7 @@
 #include "llmc-src/downloader.h"
 #include "llmc-src/model_manager.h"
 #include "llmc-src/console_manager.h"
+#include "llmc-src/bash_executor.h"
 
 #include <iostream>
 #include <string>
@@ -1064,7 +1065,11 @@ int main(int argc, char ** argv) {
 
     std::string output = output_ss.str();
 
-    
+    std::vector<std::string> output_lines = extract_bash_blocks(output);
+    for (const std::string & line : output_lines) {
+        // LOG("%s\n", line.c_str());
+        printf("%s\n", line.c_str());
+    }
     // render_markdown();
     // LOG("\n\n");
     // gpt_perf_print(ctx, smpl);
