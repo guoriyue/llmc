@@ -2063,6 +2063,7 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
         {"--no-explanations"},
         "Disable explanations",
         [](gpt_params & params) {
+            // params.llmc_show_explanations = false;
             params.llmc_show_explanations = false;
         }
     ).set_examples({LLMC_MAIN}));

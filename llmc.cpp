@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 #include <regex>
+#include <queue>
 
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
 #include <signal.h>
@@ -681,11 +682,9 @@ int main(int argc, char ** argv) {
     bool instruction_seen = false;
 
     // Buffer system to check for "### Instruction" and subsequent "###"
-    std::string output_buffer;
-    // size_t log_idx_head = 0;
-    // size_t log_idx_tail = 0;
-    // std::string unlogged_text = "";
-    size_t buffer_threshold = 16;
+    std::string output_buffer = "";
+    std::queue<std::string> unlogged_output;
+    size_t buffer_threshold = 32;
 
     while ((n_remain != 0 && !is_antiprompt) || params.interactive) {
         // predict
@@ -857,93 +856,66 @@ int main(int argc, char ** argv) {
         }
 
         // display text
-        if (input_echo && display) {
+        if (input_echo && display && params.llmc_show_explanations) {
             for (auto id : embd) {
                 const std::string token_str = llama_token_to_piece(ctx, id, params.special);
 
                 output_buffer += token_str;
+                unlogged_output.push(token_str);
 
-                if (params.llmc_show_explanations) {
-                    LOG("%s", token_str.c_str());
-                    if (check_early_stop(output_buffer)) {
-                        break;
-                    }
-                    // if (token_str.find("#") == std::string::npos && unlogged_text.find("#") == std::string::npos) {
-                    //     LOG("%s", unlogged_text.c_str());
-                    //     unlogged_text = "";
-                    //     log_idx_tail += token_str.length();
-                    //     log_idx_head = log_idx_tail;
-                    //     LOG("%s", token_str.c_str());
-                    // } else {
-                    //     // LOG(" ");
-                    //     log_idx_tail += token_str.length();
-                    //     unlogged_text = output_buffer.substr(log_idx_head, log_idx_tail - log_idx_head);
-                    //     if (!instruction_seen) {
-                    //         if (unlogged_text.find("### Ins") != std::string::npos || unlogged_text.find("### Exa") != std::string::npos) {
-                    //             // Instruction or Example
-                    //             instruction_seen = true;
-                    //             LOG("%s", unlogged_text.c_str());
-                    //             log_idx_head = log_idx_tail;
-                    //             unlogged_text = "";
-                    //         } else {
-                    //             // buffering
-                    //             if (log_idx_tail - log_idx_head > buffer_threshold) {
-                    //                 LOG("%s", unlogged_text.c_str());
-                    //                 log_idx_head = log_idx_tail;
-                    //                 unlogged_text = "";
-                    //             } else {
-                    //                 log_idx_tail += token_str.length();
-                    //             }
-                    //         }
-                    //     } else{
-                    //         if (unlogged_text.find("###") != std::string::npos) {
-                    //             LOG("%s", unlogged_text.c_str());
-                    //             size_t pos = output_buffer.find("###");
-                    //             std::string last_unlogged_text = output_buffer.substr(0, pos);
-                    //             log_idx_head = log_idx_head + last_unlogged_text.length();
-                    //             log_idx_tail = log_idx_head;
-                    //             unlogged_text = "";
-                    //             // Early stop condition
-                    //             break;
-                    //         } else {
-                    //             // buffering
-                    //             log_idx_tail += token_str.length();
-                    //         }
-                    //     }
-                    // }
+                if (unlogged_output.size() > buffer_threshold) {
+                    LOG("%s", unlogged_output.front().c_str());
+                    unlogged_output.pop();
                 }
 
-                
-                
-                // Console/Stream Output
-                if (params.llmc_show_explanations) {
-                    // LOG("%s", token_str.c_str());
-
-                    if (!instruction_seen && token_str.find("### Ins") != std::string::npos) {
-                        // Instruction
-                        instruction_seen = true;
-                    }
-
-                    if (instruction_seen && token_str.find("###") != std::string::npos) {
-                        // size_t pos = output_buffer.find("###");
-                        // std::string last_buffer = "";
-                        // // If the delimiter is found, return the substring before it
-                        // if (pos != std::string::npos) {
-                        //     last_buffer = output_buffer.substr(0, pos);
-                        // }
-                        // LOG("%s", last_buffer.c_str());
-                        // Early stop condition
-                        break;
-                    }
-                    
-                    
-                    // if (log_idx_tail - log_idx_head > buffer_threshold) {
-                    //     // LOG("%s", output_buffer.c_str());
-                    //     log_idx_head = log_idx_tail;
-                    // }
-                    // LOG("%s", output_buffer.c_str());
+                if (check_early_stop(output_buffer, unlogged_output.size())) {
+                    break;
                 }
-                
+
+                // if (token_str.find("#") == std::string::npos && unlogged_text.find("#") == std::string::npos) {
+                //     LOG("%s", unlogged_text.c_str());
+                //     unlogged_text = "";
+                //     log_idx_tail += token_str.length();
+                //     log_idx_head = log_idx_tail;
+                //     LOG("%s", token_str.c_str());
+                // } else {
+                //     // LOG(" ");
+                //     log_idx_tail += token_str.length();
+                //     unlogged_text = output_buffer.substr(log_idx_head, log_idx_tail - log_idx_head);
+                //     if (!instruction_seen) {
+                //         if (unlogged_text.find("### Ins") != std::string::npos || unlogged_text.find("### Exa") != std::string::npos) {
+                //             // Instruction or Example
+                //             instruction_seen = true;
+                //             LOG("%s", unlogged_text.c_str());
+                //             log_idx_head = log_idx_tail;
+                //             unlogged_text = "";
+                //         } else {
+                //             // buffering
+                //             if (log_idx_tail - log_idx_head > buffer_threshold) {
+                //                 LOG("%s", unlogged_text.c_str());
+                //                 log_idx_head = log_idx_tail;
+                //                 unlogged_text = "";
+                //             } else {
+                //                 log_idx_tail += token_str.length();
+                //             }
+                //         }
+                //     } else{
+                //         if (unlogged_text.find("###") != std::string::npos) {
+                //             LOG("%s", unlogged_text.c_str());
+                //             size_t pos = output_buffer.find("###");
+                //             std::string last_unlogged_text = output_buffer.substr(0, pos);
+                //             log_idx_head = log_idx_head + last_unlogged_text.length();
+                //             log_idx_tail = log_idx_head;
+                //             unlogged_text = "";
+                //             // Early stop condition
+                //             break;
+                //         } else {
+                //             // buffering
+                //             log_idx_tail += token_str.length();
+                //         }
+                //     }
+                // }
+
 
                 // Record Displayed Tokens To Log
                 // Note: Generated tokens are created one by one hence this check
@@ -955,6 +927,10 @@ int main(int argc, char ** argv) {
                     output_tokens.push_back(id);
                     output_ss << token_str;
                 }
+            }
+            while (!unlogged_output.empty()) {
+                LOG("%s", unlogged_output.front().c_str());
+                unlogged_output.pop();
             }
         }
 
