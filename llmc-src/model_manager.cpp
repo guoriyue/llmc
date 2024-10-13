@@ -160,7 +160,7 @@ std::string model_manager::set_model() {
     
         std::string chosen_model_path = fs_get_cache_file(file_name);
         // download the model
-        bool download_model = downloader::download_file(chosen_model_url, chosen_model_path);
+        bool download_model = download_file(chosen_model_url, chosen_model_path);
         if (!download_model) {
             std::cout << "Error: Could not download the model." << std::endl;
             return "";

@@ -1,4 +1,5 @@
 #include "downloader.h"
+#include "console_manager.h"
 #include <iostream>
 #include <fstream>
 #include <curl/curl.h>
@@ -12,24 +13,6 @@
     #include <termios.h>  // POSIX terminal control
     #include <unistd.h>   // For STDIN_FILENO
 #endif
-// Function to disable terminal input while download is in progress
-void disable_input() {
-    termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt); // Get current terminal attributes
-    newt = oldt;
-    newt.c_lflag &= ~ICANON; // Disable canonical mode
-    newt.c_lflag &= ~ECHO; // Disable echoing of input
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt); // Set new attributes
-}
-
-// Function to enable terminal input after download is complete
-void enable_input() {
-    termios oldt;
-    tcgetattr(STDIN_FILENO, &oldt); // Get current terminal attributes
-    oldt.c_lflag |= ICANON; // Enable canonical mode
-    oldt.c_lflag |= ECHO; // Enable echoing of input
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // Set new attributes
-}
 
 // Function to display progress bar with speed
 void show_progress_bar(double percentage, double speed) {
@@ -53,6 +36,7 @@ size_t write_data(void* buffer, size_t size, size_t nmemb, void* userp) {
     ofs->write(static_cast<char*>(buffer), size * nmemb);
     return size * nmemb;
 }
+
 int progress_callback(void* ptr, curl_off_t total, curl_off_t now, curl_off_t, curl_off_t) {
     static auto last_update_time = std::chrono::steady_clock::now(); // Track time of the last update
     static curl_off_t prev_downloaded = 0;
@@ -90,7 +74,7 @@ int progress_callback(void* ptr, curl_off_t total, curl_off_t now, curl_off_t, c
     return 0;
 }
 
-bool downloader::download_file(const std::string& url, const std::string& file_path) {
+bool download_file(const std::string& url, const std::string& file_path) {
     CURL* curl;
     CURLcode res;
     std::ofstream file(file_path, std::ios::binary);
