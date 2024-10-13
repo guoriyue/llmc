@@ -20,6 +20,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <regex>
 
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
 #include <signal.h>
@@ -54,6 +55,25 @@ static void print_usage(int argc, char ** argv) {
     // LOG("\n  text generation:     %s -m your_model.gguf -p \"I believe the meaning of life is\" -n 128\n", argv[0]);
     // LOG("\n  chat (conversation): %s -m your_model.gguf -p \"You are a helpful assistant\" -cnv\n", argv[0]);
     // LOG("\n");
+}
+
+void render_markdown(const std::string& markdown) {
+    std::string formatted = markdown;
+
+    // Bold: **text** or __text__
+    formatted = std::regex_replace(formatted, std::regex(R"(\*\*(.*?)\*\*)"), "\033[1m$1\033[0m");
+    formatted = std::regex_replace(formatted, std::regex(R"(__([^_]+)__)"), "\033[1m$1\033[0m");
+
+    // Italic: *text* or _text_
+    formatted = std::regex_replace(formatted, std::regex(R"(\*(.*?)\*)"), "\033[3m$1\033[0m");
+    formatted = std::regex_replace(formatted, std::regex(R"(_([^_]+)_)"), "\033[3m$1\033[0m");
+
+    // Headings: #, ##, ###...
+    formatted = std::regex_replace(formatted, std::regex(R"(### (.*))"), "\033[1m\033[4m$1\033[0m");
+    formatted = std::regex_replace(formatted, std::regex(R"(## (.*))"), "\033[1m$1\033[0m");
+    formatted = std::regex_replace(formatted, std::regex(R"(# (.*))"), "\033[1m\033[7m$1\033[0m");
+
+    std::cout << formatted << std::endl;
 }
 
 static bool file_exists(const std::string & path) {
@@ -213,7 +233,35 @@ int main(int argc, char ** argv) {
         return 0;
     }
 
-    params.system_prompt = "You are a command line tool designed to assist developers in generating accurate and executable shell commands. Your task is to interpret developer requests and translate them into proper command-line syntax, ensuring correctness, efficiency, and compatibility with common development environments. Always provide clear and concise commands, and include explanations when necessary. Please respond in English.";
+    // std::string shell_prompt = R"(You are a command line tool helper designed to assist developers in generating accurate and executable shell commands. Given a user request or problem description, generate the appropriate command to solve the issue, and explain each part of the command briefly. Always ensure the solution is correct, efficient, and follows best practices.
+    
+    //                             ##Instruction: show current directory
+    //                             pwd
+    //                             ###Instruction: list all files in the current directory
+    //                             ls
+    //                             ###Instruction: show ip address
+    //                             ip addr show
+    //                             ###Instruction: update my system
+    //                             sudo apt update && sudo apt upgrade -y
+    //                             ###Instruction: create a folder here named my_new_music and put a new text file named awesome_playlist.md in it
+    //                             mkdir my_new_music && touch ./my_new_music/awesome_playlist.md
+    //                             ###Instruction: delete the folder oldies_goldies
+    //                             rm -rf oldies_goldies
+    //                             ###Instruction: show all docker containers
+    //                             docker ps
+    //                             ###Instruction: mistakenly pushed large files to GitHub, please remove them from the git history
+    //                             git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch <file/dir>' HEAD
+    //                             ###Instruction: create a Python 3.11 conda environment
+    //                             conda create -n \"myenv\" python=3.11
+    //                             ###Instruction: 
+    //                             )";
+
+    // params.prompt = "give me a shell command to do this: " + params.prompt;
+    // params.system_prompt = shell_prompt;
+
+
+    params.prompt = "### Instruction: " + params.prompt;
+    params.system_prompt = command_prompt;
 
     llama_backend_init();
     llama_numa_init(params.numa);
@@ -960,6 +1008,7 @@ int main(int argc, char ** argv) {
         llama_state_save_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.size());
     }
 
+    // render_markdown(output_ss.str());
     // LOG("\n\n");
     // gpt_perf_print(ctx, smpl);
     // write_logfile(ctx, params, model, input_tokens, output_ss.str(), output_tokens);
