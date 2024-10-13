@@ -26,3 +26,17 @@ std::vector<std::string> extract_bash_blocks(const std::string& input) {
 
     return bash_blocks;
 }
+
+std::string extract_instruction(const std::string& input) {
+    std::string instruction;
+    // Regular expression to find the first instruction in a bash block
+    std::regex instruction_regex(R"(### Instruction.*?(?=### ))");
+    std::smatch match;
+
+    // Extract the first instruction from the input string
+    if (std::regex_search(input, match, instruction_regex)) {
+        instruction = match.str();
+    }
+
+    return instruction;
+}

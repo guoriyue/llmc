@@ -677,7 +677,12 @@ int main(int argc, char ** argv) {
         embd_inp.clear();
         embd_inp.push_back(decoder_start_token_id);
     }
-    
+
+    bool instruction_seen = false;
+
+    // Buffer system to check for "### Instruction" and subsequent "###"
+    std::string output_buffer;
+
     while ((n_remain != 0 && !is_antiprompt) || params.interactive) {
         // predict
         if (!embd.empty()) {
@@ -1057,6 +1062,10 @@ int main(int argc, char ** argv) {
             is_interacting = true;
         }
     }
+    
+    
+    
+    
     
     if (!path_session.empty() && params.prompt_cache_all && !params.prompt_cache_ro) {
         LOG("\n%s: saving final output to session file '%s'\n", __func__, path_session.c_str());

@@ -419,11 +419,18 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
             params.verbose_prompt = true;
         }
     ));
+    // add_opt(llama_arg(
+    //     {"--no-display-prompt"},
+    //     format("don't print prompt at generation (default: %s)", !params.display_prompt ? "true" : "false"),
+    //     [](gpt_params & params) {
+    //         params.display_prompt = false;
+    //     }
+    // ).set_examples({LLAMA_EXAMPLE_MAIN}));
     add_opt(llama_arg(
-        {"--no-display-prompt"},
-        format("don't print prompt at generation (default: %s)", !params.display_prompt ? "true" : "false"),
+        {"--display-prompt"},
+        format("print prompt at generation (default: %s)", !params.display_prompt ? "true" : "false"),
         [](gpt_params & params) {
-            params.display_prompt = false;
+            params.display_prompt = true;
         }
     ).set_examples({LLAMA_EXAMPLE_MAIN}));
     add_opt(llama_arg(
