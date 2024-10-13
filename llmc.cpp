@@ -52,7 +52,7 @@ static bool need_insert_eot = false;
 
 
 std::string command_prompt = R"(
-You are a command-line tool helper designed to assist developers in generating accurate and executable shell commands. Given a user request or problem description, generate the appropriate command to solve the issue, and explain each part of the command briefly. Always ensure the solution is correct, efficient, and follows best practices.
+You are a command-line tool helper designed to assist developers in generating accurate and executable shell commands. Given a user request or problem description, generate the appropriate command to solve the issue, and explain each part of the command briefly. Always ensure the solution is correct, efficient, and follows best practices. Do not repeat yourself and provide clear and concise explanations.
 
 ### Instruction: show current directory
 Command: pwd
@@ -682,6 +682,10 @@ int main(int argc, char ** argv) {
 
     // Buffer system to check for "### Instruction" and subsequent "###"
     std::string output_buffer;
+    // size_t log_idx_head = 0;
+    // size_t log_idx_tail = 0;
+    // std::string unlogged_text = "";
+    size_t buffer_threshold = 16;
 
     while ((n_remain != 0 && !is_antiprompt) || params.interactive) {
         // predict
@@ -857,9 +861,87 @@ int main(int argc, char ** argv) {
             for (auto id : embd) {
                 const std::string token_str = llama_token_to_piece(ctx, id, params.special);
 
-                // Console/Stream Output
+                output_buffer += token_str;
+
                 if (params.llmc_show_explanations) {
                     LOG("%s", token_str.c_str());
+                    if (check_early_stop(output_buffer)) {
+                        break;
+                    }
+                    // if (token_str.find("#") == std::string::npos && unlogged_text.find("#") == std::string::npos) {
+                    //     LOG("%s", unlogged_text.c_str());
+                    //     unlogged_text = "";
+                    //     log_idx_tail += token_str.length();
+                    //     log_idx_head = log_idx_tail;
+                    //     LOG("%s", token_str.c_str());
+                    // } else {
+                    //     // LOG(" ");
+                    //     log_idx_tail += token_str.length();
+                    //     unlogged_text = output_buffer.substr(log_idx_head, log_idx_tail - log_idx_head);
+                    //     if (!instruction_seen) {
+                    //         if (unlogged_text.find("### Ins") != std::string::npos || unlogged_text.find("### Exa") != std::string::npos) {
+                    //             // Instruction or Example
+                    //             instruction_seen = true;
+                    //             LOG("%s", unlogged_text.c_str());
+                    //             log_idx_head = log_idx_tail;
+                    //             unlogged_text = "";
+                    //         } else {
+                    //             // buffering
+                    //             if (log_idx_tail - log_idx_head > buffer_threshold) {
+                    //                 LOG("%s", unlogged_text.c_str());
+                    //                 log_idx_head = log_idx_tail;
+                    //                 unlogged_text = "";
+                    //             } else {
+                    //                 log_idx_tail += token_str.length();
+                    //             }
+                    //         }
+                    //     } else{
+                    //         if (unlogged_text.find("###") != std::string::npos) {
+                    //             LOG("%s", unlogged_text.c_str());
+                    //             size_t pos = output_buffer.find("###");
+                    //             std::string last_unlogged_text = output_buffer.substr(0, pos);
+                    //             log_idx_head = log_idx_head + last_unlogged_text.length();
+                    //             log_idx_tail = log_idx_head;
+                    //             unlogged_text = "";
+                    //             // Early stop condition
+                    //             break;
+                    //         } else {
+                    //             // buffering
+                    //             log_idx_tail += token_str.length();
+                    //         }
+                    //     }
+                    // }
+                }
+
+                
+                
+                // Console/Stream Output
+                if (params.llmc_show_explanations) {
+                    // LOG("%s", token_str.c_str());
+
+                    if (!instruction_seen && token_str.find("### Ins") != std::string::npos) {
+                        // Instruction
+                        instruction_seen = true;
+                    }
+
+                    if (instruction_seen && token_str.find("###") != std::string::npos) {
+                        // size_t pos = output_buffer.find("###");
+                        // std::string last_buffer = "";
+                        // // If the delimiter is found, return the substring before it
+                        // if (pos != std::string::npos) {
+                        //     last_buffer = output_buffer.substr(0, pos);
+                        // }
+                        // LOG("%s", last_buffer.c_str());
+                        // Early stop condition
+                        break;
+                    }
+                    
+                    
+                    // if (log_idx_tail - log_idx_head > buffer_threshold) {
+                    //     // LOG("%s", output_buffer.c_str());
+                    //     log_idx_head = log_idx_tail;
+                    // }
+                    // LOG("%s", output_buffer.c_str());
                 }
                 
 
@@ -1074,11 +1156,15 @@ int main(int argc, char ** argv) {
 
     std::string output = output_ss.str();
 
-    std::vector<std::string> output_lines = extract_bash_blocks(output);
+    // std::vector<std::string> output_lines = extract_bash_blocks(output);
+
+    std::vector<std::string> output_lines = extract_suggestions(output);
+    
     for (const std::string & line : output_lines) {
         // LOG("%s\n", line.c_str());
         printf("%s\n", line.c_str());
     }
+
     // render_markdown();
     // LOG("\n\n");
     // gpt_perf_print(ctx, smpl);
