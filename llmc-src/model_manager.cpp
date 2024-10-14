@@ -46,24 +46,24 @@ void model_manager::show_config() {
     // std::cout << "Current model path: " << model_path << std::endl;
 }
 
-void model_manager::print_models(const std::vector<std::string>& models, std::size_t current_choice) {
-    // Move the cursor up by the number of model lines to overwrite them
-    if (first_call_print_models) {
-        first_call_print_models = false;
-    } else {
-        for (std::size_t i = 0; i < models.size(); ++i) {
-            std::cout << "\033[F";
-        }
-    }
-    for (std::size_t i = 0; i < models.size(); ++i) {
-        if (i == current_choice) {
-            // Highlight the current choice (reverse video mode)
-            std::cout << "\033[7m" << models[i] << "\033[0m" << std::endl;
-        } else {
-            std::cout << models[i] << std::endl;
-        }
-    }
-}
+// void model_manager::print_models(const std::vector<std::string>& models, std::size_t current_choice) {
+//     // Move the cursor up by the number of model lines to overwrite them
+//     if (first_call_print_models) {
+//         first_call_print_models = false;
+//     } else {
+//         for (std::size_t i = 0; i < models.size(); ++i) {
+//             std::cout << "\033[F";
+//         }
+//     }
+//     for (std::size_t i = 0; i < models.size(); ++i) {
+//         if (i == current_choice) {
+//             // Highlight the current choice (reverse video mode)
+//             std::cout << "\033[7m" << models[i] << "\033[0m" << std::endl;
+//         } else {
+//             std::cout << models[i] << std::endl;
+//         }
+//     }
+// }
 
 std::string model_manager::read_model_path() {
     // std::string config_path = file_manager::get_cache_directory(CMD_NAME) + "/" + CONFIG_FILE;
@@ -93,45 +93,45 @@ void model_manager::save_model_path(const std::string& path) {
     }
 }
 
-std::size_t model_manager::choose_model() {
-    std::size_t choice = 0;
-    int key;
-    disable_echo();
-    // Print the initial model list
-    print_models(models_to_choose, choice);
-    while (true) {
-        key = console::getchar32();
-        if (key == 27) { // Escape sequence starts with 27 (ESC)
-            key = console::getchar32(); // Skip the '[' character
-            key = console::getchar32(); // Get the actual arrow key
+// std::size_t model_manager::choose_model() {
+//     std::size_t choice = 0;
+//     int key;
+//     disable_echo();
+//     // Print the initial model list
+//     print_models(models_to_choose, choice);
+//     while (true) {
+//         key = console::getchar32();
+//         if (key == 27) { // Escape sequence starts with 27 (ESC)
+//             key = console::getchar32(); // Skip the '[' character
+//             key = console::getchar32(); // Get the actual arrow key
 
-            switch (key) {
-                case 'A': // Up arrow key
-                    if (choice > 0) {
-                        choice--;
-                    }
-                    break;
-                case 'B': // Down arrow key
-                    if (choice < models_to_choose.size() - 1) {
-                        choice++;
-                    }
-                    break;
-            }
-        } else if (key == 10) { // Enter key
-            enable_echo();
-            return choice;
-        }
+//             switch (key) {
+//                 case 'A': // Up arrow key
+//                     if (choice > 0) {
+//                         choice--;
+//                     }
+//                     break;
+//                 case 'B': // Down arrow key
+//                     if (choice < models_to_choose.size() - 1) {
+//                         choice++;
+//                     }
+//                     break;
+//             }
+//         } else if (key == 10) { // Enter key
+//             enable_echo();
+//             return choice;
+//         }
 
-        // Reprint the model list with the updated selection
-        print_models(models_to_choose, choice);
-    }
-    enable_echo();
-}
+//         // Reprint the model list with the updated selection
+//         print_models(models_to_choose, choice);
+//     }
+//     enable_echo();
+// }
 
 
 
 std::string model_manager::set_model() {
-    int chosen = choose_model();
+    int chosen = choose_from_vector(models_to_choose);
     // enable_echo();
     if (models_to_choose[chosen] == "custom"){
         std::string custom_model_path;

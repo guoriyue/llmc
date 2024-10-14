@@ -1,4 +1,4 @@
-#include "bash_executor.h"
+#include "output_parser.h"
 #include "console_manager.h"
 #include <regex>
 #include <string>
@@ -48,7 +48,35 @@ std::string extract_str(const std::string& input, const std::string& regex_str) 
 // R"(### Example.*?(?=### ))"
 // R"(### Instruction.*?(?=### ))"
 
+
+
+// Function to split a string by a delimiter character and return a vector of strings
+std::vector<std::string> split_str(const std::string& str, char delimiter) {
+    std::vector<std::string> result;
+    std::string temp;
+    
+    for (char ch : str) {
+        if (ch == delimiter) {
+            if (!temp.empty()) {
+                result.push_back(temp);
+                temp.clear();  // Reset temp for the next part
+            }
+        } else {
+            temp += ch;  // Append the current character to the temp string
+        }
+    }
+    
+    // Add the last part after the final delimiter
+    if (!temp.empty()) {
+        result.push_back(temp);
+    }
+    
+    return result;
+}
+
+
 std::vector<std::string> extract_suggestions(const std::string& input) {
+    // many manual work to fix the generated suggestions
     std::vector<std::string> suggestions;
 
     // the block before ### Instruction or ### Example
@@ -83,6 +111,21 @@ std::vector<std::string> extract_suggestions(const std::string& input) {
         if (!clean_bash_command.empty() && std::find(suggestions.begin(), suggestions.end(), clean_bash_command) == suggestions.end()) {
             if (clean_bash_command.length() && clean_bash_command[0] == '#') {
                 continue;
+            }
+            if (clean_bash_command.find("\n") != std::string::npos) {
+                std::vector<std::string> lines = split_str(clean_bash_command, '\n');
+                if (lines.size() == 0) {
+                    continue;
+                } else if (lines.size() == 1) {
+                    clean_bash_command = lines[0];
+                } else {
+                    // clean_bash_command = lines[1];
+                    if (lines[0].find("#") != std::string::npos && lines[1].find("#") == std::string::npos) {
+                        clean_bash_command = lines[1];
+                    } else {
+                        clean_bash_command = lines[0];
+                    }
+                }
             }
             suggestions.push_back(clean_bash_command);
         }

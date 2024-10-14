@@ -28,17 +28,21 @@ void disable_raw_mode(termios &orig_termios);
 int handle_escape_sequence();
 
 // Function to reprint the string and adjust the cursor position
-void refresh_line(const std::string &input, int pos);
+void refresh_line(const std::string &input, size_t pos);
 
 // Move back by one word (for Alt+B)
-void move_back_one_word(const std::string &input, int &pos);
+void move_back_one_word(const std::string &input, size_t &pos);
 
 // Move forward by one word (for Alt+F)
-void move_forward_one_word(const std::string &input, int &pos);
+void move_forward_one_word(const std::string &input, size_t &pos);
 
 // Function to allow inline editing of prefilled input with cursor movement
 std::string edit_prefilled_input(const std::string &prefilled_text);
 
 // Function to trim leading and trailing whitespace from a string
 std::string trim(const std::string &str);
+
+size_t choose_from_vector(const std::vector<std::string> &to_choose);
+
+void print_vector(const std::vector<std::string>& to_choose, std::size_t current_choice, bool first_call_print);
 #endif // INPUT_MANAGER_H

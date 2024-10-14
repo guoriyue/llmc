@@ -25,12 +25,12 @@ public:
 
     // std::string get_valid_model_path(const std::string& cache_dir, const std::string& model_url, const std::string& model_file_name);
     std::string set_model();
-    std::size_t choose_model();
+    // std::size_t choose_model();
     // std::string get_cached_model();
     std::string read_model_path();
     void save_model_path(const std::string& path);
-    void print_models(const std::vector<std::string>& models, std::size_t current_choice);
-    std::string editable_input();
+    // void print_models(const std::vector<std::string>& models, std::size_t current_choice);
+    // std::string editable_input();
     void show_config();
 };
 

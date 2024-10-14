@@ -87,14 +87,14 @@ int handle_escape_sequence() {
 }
 
 // Function to reprint the string and adjust cursor position
-void refresh_line(const std::string &input, int pos) {
+void refresh_line(const std::string &input, size_t pos) {
     std::cout << "\r\033[K" << input;  // Clear line and reprint the updated string
     // Move cursor back to the correct position
     std::cout << "\033[" << (input.length() - pos) << "D";
 }
 
 // Move back by one word (for Alt+B)
-void move_back_one_word(const std::string &input, int &pos) {
+void move_back_one_word(const std::string &input, size_t &pos) {
     while (pos > 0 && std::isspace(input[pos - 1])) {
         pos--;  // Skip whitespace
     }
@@ -105,7 +105,7 @@ void move_back_one_word(const std::string &input, int &pos) {
 }
 
 // Move forward by one word (for Alt+F)
-void move_forward_one_word(const std::string &input, int &pos) {
+void move_forward_one_word(const std::string &input, size_t &pos) {
     while (pos < input.length() && std::isspace(input[pos])) {
         pos++;  // Skip whitespace
     }
@@ -118,7 +118,7 @@ void move_forward_one_word(const std::string &input, int &pos) {
 // Function to allow inline editing of prefilled input with cursor movement
 std::string edit_prefilled_input(const std::string &prefilled_text) {
     std::string input = prefilled_text;
-    int pos = input.length();  // Cursor position starts at the end of the prefilled text
+    size_t pos = input.length();  // Cursor position starts at the end of the prefilled text
     int ch;
 
     // Save the original terminal settings
@@ -180,4 +180,56 @@ std::string trim(const std::string &str) {
 
     size_t end = str.find_last_not_of(" \t\n\r\f\v");
     return str.substr(start, end - start + 1);
+}
+
+void print_vector(const std::vector<std::string>& to_choose, std::size_t current_choice, bool first_call_print) {
+    // Move the cursor up by the number of model lines to overwrite them
+    if (!first_call_print) {
+        for (std::size_t i = 0; i < to_choose.size(); ++i) {
+            std::cout << "\033[F";
+        }
+    }
+    for (std::size_t i = 0; i < to_choose.size(); ++i) {
+        if (i == current_choice) {
+            // Highlight the current choice (reverse video mode)
+            std::cout << "\033[7m" << to_choose[i] << "\033[0m" << std::endl;
+        } else {
+            std::cout << to_choose[i] << std::endl;
+        }
+    }
+}
+
+size_t choose_from_vector(const std::vector<std::string> &to_choose) {
+    std::size_t choice = 0;
+    int key;
+    disable_echo();
+    // Print the initial model list
+    print_vector(to_choose, choice, true);
+    while (true) {
+        key = console::getchar32();
+        if (key == 27) { // Escape sequence starts with 27 (ESC)
+            key = console::getchar32(); // Skip the '[' character
+            key = console::getchar32(); // Get the actual arrow key
+
+            switch (key) {
+                case 'A': // Up arrow key
+                    if (choice > 0) {
+                        choice--;
+                    }
+                    break;
+                case 'B': // Down arrow key
+                    if (choice < to_choose.size() - 1) {
+                        choice++;
+                    }
+                    break;
+            }
+        } else if (key == 10) { // Enter key
+            enable_echo();
+            return choice;
+        }
+
+        // Reprint the model list with the updated selection
+        print_vector(to_choose, choice, false);
+    }
+    enable_echo();
 }

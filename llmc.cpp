@@ -9,7 +9,7 @@
 #include "llmc-src/downloader.h"
 #include "llmc-src/model_manager.h"
 #include "llmc-src/console_manager.h"
-#include "llmc-src/bash_executor.h"
+#include "llmc-src/output_parser.h"
 
 #include <iostream>
 #include <string>
@@ -855,78 +855,79 @@ int main(int argc, char ** argv) {
         }
 
         // display text
-        if (input_echo && display && params.llmc_show_explanations) {
-            for (auto id : embd) {
-                const std::string token_str = llama_token_to_piece(ctx, id, params.special);
+        
+        for (auto id : embd) {
+            const std::string token_str = llama_token_to_piece(ctx, id, params.special);
 
-                output_buffer += token_str;
-                unlogged_output.push(token_str);
+            output_buffer += token_str;
+            unlogged_output.push(token_str);
 
-                if (unlogged_output.size() > buffer_threshold) {
+            if (unlogged_output.size() > buffer_threshold) {
+                if (input_echo && display && params.llmc_show_explanations) {
                     LOG("%s", unlogged_output.front().c_str());
-                    unlogged_output.pop();
                 }
+                unlogged_output.pop();
+            }
 
-                early_stop_pos = check_early_stop(output_buffer);
-                if (early_stop_pos != -1) {
-                    break;
-                }
+            early_stop_pos = check_early_stop(output_buffer);
+            if (early_stop_pos != -1) {
+                break;
+            }
 
-                // if (token_str.find("#") == std::string::npos && unlogged_text.find("#") == std::string::npos) {
-                //     LOG("%s", unlogged_text.c_str());
-                //     unlogged_text = "";
-                //     log_idx_tail += token_str.length();
-                //     log_idx_head = log_idx_tail;
-                //     LOG("%s", token_str.c_str());
-                // } else {
-                //     // LOG(" ");
-                //     log_idx_tail += token_str.length();
-                //     unlogged_text = output_buffer.substr(log_idx_head, log_idx_tail - log_idx_head);
-                //     if (!instruction_seen) {
-                //         if (unlogged_text.find("### Ins") != std::string::npos || unlogged_text.find("### Exa") != std::string::npos) {
-                //             // Instruction or Example
-                //             instruction_seen = true;
-                //             LOG("%s", unlogged_text.c_str());
-                //             log_idx_head = log_idx_tail;
-                //             unlogged_text = "";
-                //         } else {
-                //             // buffering
-                //             if (log_idx_tail - log_idx_head > buffer_threshold) {
-                //                 LOG("%s", unlogged_text.c_str());
-                //                 log_idx_head = log_idx_tail;
-                //                 unlogged_text = "";
-                //             } else {
-                //                 log_idx_tail += token_str.length();
-                //             }
-                //         }
-                //     } else{
-                //         if (unlogged_text.find("###") != std::string::npos) {
-                //             LOG("%s", unlogged_text.c_str());
-                //             size_t pos = output_buffer.find("###");
-                //             std::string last_unlogged_text = output_buffer.substr(0, pos);
-                //             log_idx_head = log_idx_head + last_unlogged_text.length();
-                //             log_idx_tail = log_idx_head;
-                //             unlogged_text = "";
-                //             // Early stop condition
-                //             break;
-                //         } else {
-                //             // buffering
-                //             log_idx_tail += token_str.length();
-                //         }
-                //     }
-                // }
+            // if (token_str.find("#") == std::string::npos && unlogged_text.find("#") == std::string::npos) {
+            //     LOG("%s", unlogged_text.c_str());
+            //     unlogged_text = "";
+            //     log_idx_tail += token_str.length();
+            //     log_idx_head = log_idx_tail;
+            //     LOG("%s", token_str.c_str());
+            // } else {
+            //     // LOG(" ");
+            //     log_idx_tail += token_str.length();
+            //     unlogged_text = output_buffer.substr(log_idx_head, log_idx_tail - log_idx_head);
+            //     if (!instruction_seen) {
+            //         if (unlogged_text.find("### Ins") != std::string::npos || unlogged_text.find("### Exa") != std::string::npos) {
+            //             // Instruction or Example
+            //             instruction_seen = true;
+            //             LOG("%s", unlogged_text.c_str());
+            //             log_idx_head = log_idx_tail;
+            //             unlogged_text = "";
+            //         } else {
+            //             // buffering
+            //             if (log_idx_tail - log_idx_head > buffer_threshold) {
+            //                 LOG("%s", unlogged_text.c_str());
+            //                 log_idx_head = log_idx_tail;
+            //                 unlogged_text = "";
+            //             } else {
+            //                 log_idx_tail += token_str.length();
+            //             }
+            //         }
+            //     } else{
+            //         if (unlogged_text.find("###") != std::string::npos) {
+            //             LOG("%s", unlogged_text.c_str());
+            //             size_t pos = output_buffer.find("###");
+            //             std::string last_unlogged_text = output_buffer.substr(0, pos);
+            //             log_idx_head = log_idx_head + last_unlogged_text.length();
+            //             log_idx_tail = log_idx_head;
+            //             unlogged_text = "";
+            //             // Early stop condition
+            //             break;
+            //         } else {
+            //             // buffering
+            //             log_idx_tail += token_str.length();
+            //         }
+            //     }
+            // }
 
 
-                // Record Displayed Tokens To Log
-                // Note: Generated tokens are created one by one hence this check
-                if (embd.size() > 1) {
-                    // Incoming Requested Tokens
-                    input_tokens.push_back(id);
-                } else {
-                    // Outgoing Generated Tokens
-                    output_tokens.push_back(id);
-                    output_ss << token_str;
-                }
+            // Record Displayed Tokens To Log
+            // Note: Generated tokens are created one by one hence this check
+            if (embd.size() > 1) {
+                // Incoming Requested Tokens
+                input_tokens.push_back(id);
+            } else {
+                // Outgoing Generated Tokens
+                output_tokens.push_back(id);
+                output_ss << token_str;
             }
         }
 
@@ -1120,15 +1121,20 @@ int main(int argc, char ** argv) {
         }
     }
 
+    
     if (early_stop_pos != -1) {
         while (unlogged_output.size() >= output_buffer.length() - early_stop_pos - 1) {
-            LOG("%s", unlogged_output.front().c_str());
+            if (input_echo && display && params.llmc_show_explanations) {
+                LOG("%s", unlogged_output.front().c_str());
+            }
             unlogged_output.pop();
         }
         output_buffer = output_buffer.substr(0, early_stop_pos);
     } else {
         while (!unlogged_output.empty()) {
-            LOG("%s", unlogged_output.front().c_str());
+            if (input_echo && display && params.llmc_show_explanations) {
+                LOG("%s", unlogged_output.front().c_str());
+            }
             unlogged_output.pop();
         }
     }
@@ -1144,10 +1150,9 @@ int main(int argc, char ** argv) {
     // std::vector<std::string> output_lines = extract_bash_blocks(output);
 
     std::vector<std::string> output_lines = extract_suggestions(output_buffer);
-    printf("=== Suggestions ===\n");
-    for (const std::string & line : output_lines) {
-        // LOG("%s\n", line.c_str());
-        printf("%s\n", line.c_str());
+    if (!output_lines.empty()) {
+        printf("============ Choose Suggested Commands ============\n");
+        size_t chosen_cmd = choose_from_vector(output_lines);
     }
 
     // render_markdown();

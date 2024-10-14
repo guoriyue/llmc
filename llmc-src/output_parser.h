@@ -16,4 +16,6 @@ size_t check_early_stop(const std::string& output_buffer);
 size_t get_nth_delimiters(const std::string& input, const std::string& delimiter, size_t n);
 
 size_t get_num_delimiters(const std::string& input, const std::string& delimiter);
+
+std::vector<std::string> split_str(const std::string& str, char delimiter);
 #endif // EXTRACT_BASH_BLOCKS_H
