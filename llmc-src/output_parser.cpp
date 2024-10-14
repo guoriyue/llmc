@@ -108,13 +108,14 @@ std::vector<std::string> extract_suggestions(const std::string& input) {
     }
     if (blocks.size() == 0) {
         blocks = extract_strs(potential_suggestion, R"(```([\s\S]*?)```)"); 
+        // std::string regex_str = R"(```(?![a-zA-Z]+)([\s\S]*?)```)";
     }
 
     for (const std::string& block : blocks) {
         std::string clean_bash_command = trim(block);
         if (!clean_bash_command.empty() && std::find(suggestions.begin(), suggestions.end(), clean_bash_command) == suggestions.end()) {
             // we should support multi-line commands
-            
+
             suggestions.push_back(clean_bash_command);
             // if (clean_bash_command.length() && clean_bash_command[0] == '#') {
             //     continue;
