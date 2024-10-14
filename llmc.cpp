@@ -869,8 +869,6 @@ int main(int argc, char ** argv) {
 
                 early_stop_pos = check_early_stop(output_buffer);
                 if (early_stop_pos != -1) {
-                    printf("early_stop_pos %d\n", early_stop_pos);
-                    printf("output_buffer.length() %d\n", output_buffer.length());
                     break;
                 }
 
@@ -1122,22 +1120,18 @@ int main(int argc, char ** argv) {
         }
     }
 
-    printf("&&&&&&&&&&&&&&&&&&& early_stop_pos = %d\n", early_stop_pos);
     if (early_stop_pos != -1) {
-        printf("early stop at %d\n", early_stop_pos);
-        printf("output_buffer.length() = %d\n", output_buffer.length());
-        printf("unlogged_output.size() = %d\n", unlogged_output.size());
-        while (unlogged_output.size() > output_buffer.length() - early_stop_pos) {
+        while (unlogged_output.size() >= output_buffer.length() - early_stop_pos - 1) {
             LOG("%s", unlogged_output.front().c_str());
             unlogged_output.pop();
         }
         output_buffer = output_buffer.substr(0, early_stop_pos);
+    } else {
+        while (!unlogged_output.empty()) {
+            LOG("%s", unlogged_output.front().c_str());
+            unlogged_output.pop();
+        }
     }
-    
-    
-    
-    
-    
     
     
     if (!path_session.empty() && params.prompt_cache_all && !params.prompt_cache_ro) {
@@ -1150,7 +1144,7 @@ int main(int argc, char ** argv) {
     // std::vector<std::string> output_lines = extract_bash_blocks(output);
 
     std::vector<std::string> output_lines = extract_suggestions(output_buffer);
-    printf("====================================\n");
+    printf("=== Suggestions ===\n");
     for (const std::string & line : output_lines) {
         // LOG("%s\n", line.c_str());
         printf("%s\n", line.c_str());

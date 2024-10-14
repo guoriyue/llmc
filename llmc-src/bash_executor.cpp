@@ -68,6 +68,10 @@ std::vector<std::string> extract_suggestions(const std::string& input) {
 
     std::string potential_suggestion = first_output + example + instruction;
 
+    if (potential_suggestion == "") {
+        potential_suggestion = input;
+    }
+
     std::vector<std::string> blocks = extract_strs(potential_suggestion, R"(```bash([\s\S]*?)```)");
 
     if (blocks.size() == 0) {
@@ -77,6 +81,9 @@ std::vector<std::string> extract_suggestions(const std::string& input) {
     for (const std::string& block : blocks) {
         std::string clean_bash_command = trim(block);
         if (!clean_bash_command.empty() && std::find(suggestions.begin(), suggestions.end(), clean_bash_command) == suggestions.end()) {
+            if (clean_bash_command.length() && clean_bash_command[0] == '#') {
+                continue;
+            }
             suggestions.push_back(clean_bash_command);
         }
     }
@@ -101,10 +108,10 @@ size_t get_nth_delimiters(const std::string& input, const std::string& delimiter
 
     while ((pos = input.find(delimiter, pos)) != std::string::npos) {
         n_delimiters++;
-        pos += delimiter.length();
         if (n_delimiters == n) {
             return pos;
         }
+        pos += delimiter.length();
     }
 
     return pos;
