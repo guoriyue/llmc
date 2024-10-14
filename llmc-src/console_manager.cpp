@@ -186,15 +186,15 @@ void print_vector(const std::vector<std::string>& to_choose, std::size_t current
     // Move the cursor up by the number of model lines to overwrite them
     if (!first_call_print) {
         for (std::size_t i = 0; i < to_choose.size(); ++i) {
-            std::cout << "\033[F";
+            std::cout << "    " << "\033[F";
         }
     }
     for (std::size_t i = 0; i < to_choose.size(); ++i) {
         if (i == current_choice) {
             // Highlight the current choice (reverse video mode)
-            std::cout << "\033[7m" << to_choose[i] << "\033[0m" << std::endl;
+            std::cout << "[>] " << "\033[7m" << to_choose[i] << "\033[0m" << std::endl;
         } else {
-            std::cout << to_choose[i] << std::endl;
+            std::cout << "    " << to_choose[i] << std::endl;
         }
     }
 }
@@ -232,4 +232,35 @@ size_t choose_from_vector(const std::vector<std::string> &to_choose) {
         print_vector(to_choose, choice, false);
     }
     enable_echo();
+}
+
+
+void print_centered_message(const char* message, int total_length) {
+    int message_length = strlen(message);
+    
+    // Ensure the message is not longer than the total length
+    if (message_length >= total_length) {
+        printf("%s\n", message); // Print the message directly if it's too long
+        return;
+    }
+
+    // Calculate how many '=' signs will go on each side
+    int padding = (total_length - message_length - 2); // 2 accounts for the spaces around the message
+    int half_padding = padding / 2;
+    
+    // Print the left side '=' signs
+    for (int i = 0; i < half_padding; i++) {
+        printf("=");
+    }
+
+    // Print the message with spaces
+    printf(" %s ", message);
+
+    // Print the right side '=' signs (adjusting for odd number of total_length)
+    for (int i = 0; i < (padding - half_padding); i++) {
+        printf("=");
+    }
+
+    // End the line with a newline character
+    printf("\n");
 }

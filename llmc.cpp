@@ -1148,11 +1148,13 @@ int main(int argc, char ** argv) {
     // std::string output = output_ss.str();
 
     // std::vector<std::string> output_lines = extract_bash_blocks(output);
-
+    printf("\n\n");
     std::vector<std::string> output_lines = extract_suggestions(output_buffer);
-    if (!output_lines.empty()) {
-        printf("============ Choose Suggested Commands ============\n");
+    // printf("============ Choose & Execute ============\n");
+    while (!output_lines.empty()) {
+        print_centered_message("Choose a Command", PRINT_LENGTH);
         size_t chosen_cmd = choose_from_vector(output_lines);
+        // output_lines.erase(output_lines.begin() + chosen_cmd);
     }
 
     // render_markdown();
