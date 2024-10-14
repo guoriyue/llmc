@@ -76,6 +76,7 @@ std::vector<std::string> split_str(const std::string& str, char delimiter) {
 
 
 std::vector<std::string> extract_suggestions(const std::string& input) {
+    // may need to move this to handle by llm again, but now we do manual processing
     // many manual work to fix the generated suggestions
     std::vector<std::string> suggestions;
 
@@ -103,31 +104,48 @@ std::vector<std::string> extract_suggestions(const std::string& input) {
     std::vector<std::string> blocks = extract_strs(potential_suggestion, R"(```bash([\s\S]*?)```)");
 
     if (blocks.size() == 0) {
+        blocks = extract_strs(potential_suggestion, R"(```shell([\s\S]*?)```)"); 
+    }
+    if (blocks.size() == 0) {
         blocks = extract_strs(potential_suggestion, R"(```([\s\S]*?)```)"); 
     }
 
     for (const std::string& block : blocks) {
         std::string clean_bash_command = trim(block);
         if (!clean_bash_command.empty() && std::find(suggestions.begin(), suggestions.end(), clean_bash_command) == suggestions.end()) {
-            if (clean_bash_command.length() && clean_bash_command[0] == '#') {
-                continue;
-            }
-            if (clean_bash_command.find("\n") != std::string::npos) {
-                std::vector<std::string> lines = split_str(clean_bash_command, '\n');
-                if (lines.size() == 0) {
-                    continue;
-                } else if (lines.size() == 1) {
-                    clean_bash_command = lines[0];
-                } else {
-                    // clean_bash_command = lines[1];
-                    if (lines[0].find("#") != std::string::npos && lines[1].find("#") == std::string::npos) {
-                        clean_bash_command = lines[1];
-                    } else {
-                        clean_bash_command = lines[0];
-                    }
-                }
-            }
+            // we should support multi-line commands
+            
             suggestions.push_back(clean_bash_command);
+            // if (clean_bash_command.length() && clean_bash_command[0] == '#') {
+            //     continue;
+            // }
+            // if (clean_bash_command.find("\n") != std::string::npos) {
+            //     std::vector<std::string> lines = split_str(clean_bash_command, '\n');
+            //     printf("lines.size(): %lu\n", lines.size());
+            //     if (lines.size() == 0) {
+            //         continue;
+            //     } else if (lines.size() == 1) {
+            //         // clean_bash_command = lines[0];
+            //         suggestions.push_back(lines[0]);
+            //     } else {
+            //         // clean_bash_command = lines[1];
+            //         // if (lines[0].find("#") != std::string::npos && lines[1].find("#") == std::string::npos) {
+            //         //     clean_bash_command = lines[1];
+            //         // } else {
+            //         //     clean_bash_command = lines[0];
+            //         // }
+            //         for (const std::string& line : lines) {
+            //             if (line.find("#") != std::string::npos && line.length() && line[0] == '#') {
+            //                 // comments
+            //             } else {
+            //                 // clean_bash_command = line;
+            //                 suggestions.push_back(line);
+            //                 // break;
+            //             }
+            //         }
+            //     }
+            // }
+            
         }
     }
     return suggestions;
@@ -178,6 +196,9 @@ size_t check_early_stop(const std::string& output_buffer) {
     }
     if (output_buffer.find("####") != std::string::npos) {
         return output_buffer.find("####");
+    }
+    if (get_num_delimiters(output_buffer, "**") >= 7) {
+        return get_nth_delimiters(output_buffer, "**", 7);
     }
     // return false;
     return -1;

@@ -10,6 +10,7 @@
 #include "llmc-src/model_manager.h"
 #include "llmc-src/console_manager.h"
 #include "llmc-src/output_parser.h"
+#include "llmc-src/shell_executor.h"
 
 #include <iostream>
 #include <string>
@@ -1154,6 +1155,8 @@ int main(int argc, char ** argv) {
     while (!output_lines.empty()) {
         print_centered_message("Choose a Command", PRINT_LENGTH);
         size_t chosen_cmd = choose_from_vector(output_lines);
+        std::string edited_cmd = edit_prefilled_input(output_lines[chosen_cmd]);
+        exec_command(edited_cmd);
         // output_lines.erase(output_lines.begin() + chosen_cmd);
     }
 

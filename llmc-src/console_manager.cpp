@@ -182,58 +182,6 @@ std::string trim(const std::string &str) {
     return str.substr(start, end - start + 1);
 }
 
-void print_vector(const std::vector<std::string>& to_choose, std::size_t current_choice, bool first_call_print) {
-    // Move the cursor up by the number of model lines to overwrite them
-    if (!first_call_print) {
-        for (std::size_t i = 0; i < to_choose.size(); ++i) {
-            std::cout << "    " << "\033[F";
-        }
-    }
-    for (std::size_t i = 0; i < to_choose.size(); ++i) {
-        if (i == current_choice) {
-            // Highlight the current choice (reverse video mode)
-            std::cout << "[>] " << "\033[7m" << to_choose[i] << "\033[0m" << std::endl;
-        } else {
-            std::cout << "    " << to_choose[i] << std::endl;
-        }
-    }
-}
-
-size_t choose_from_vector(const std::vector<std::string> &to_choose) {
-    std::size_t choice = 0;
-    int key;
-    disable_echo();
-    // Print the initial model list
-    print_vector(to_choose, choice, true);
-    while (true) {
-        key = console::getchar32();
-        if (key == 27) { // Escape sequence starts with 27 (ESC)
-            key = console::getchar32(); // Skip the '[' character
-            key = console::getchar32(); // Get the actual arrow key
-
-            switch (key) {
-                case 'A': // Up arrow key
-                    if (choice > 0) {
-                        choice--;
-                    }
-                    break;
-                case 'B': // Down arrow key
-                    if (choice < to_choose.size() - 1) {
-                        choice++;
-                    }
-                    break;
-            }
-        } else if (key == 10) { // Enter key
-            enable_echo();
-            return choice;
-        }
-
-        // Reprint the model list with the updated selection
-        print_vector(to_choose, choice, false);
-    }
-    enable_echo();
-}
-
 
 void print_centered_message(const char* message, int total_length) {
     int message_length = strlen(message);
@@ -263,4 +211,134 @@ void print_centered_message(const char* message, int total_length) {
 
     // End the line with a newline character
     printf("\n");
+}
+
+
+// void print_vector(const std::vector<std::string>& to_choose, std::size_t current_choice, bool first_call_print) {
+//     // Move the cursor up by the number of model lines to overwrite them
+//     if (!first_call_print) {
+//         for (std::size_t i = 0; i < to_choose.size(); ++i) {
+//             std::cout << "    " << "\033[F";
+//         }
+//     }
+//     for (std::size_t i = 0; i < to_choose.size(); ++i) {
+//         if (i == current_choice) {
+//             // Highlight the current choice (reverse video mode)
+//             std::cout << "[>] " << "\033[7m" << to_choose[i] << "\033[0m" << std::endl;
+//         } else {
+//             std::cout << "    " << to_choose[i] << std::endl;
+//         }
+//     }
+// }
+
+// size_t choose_from_vector(const std::vector<std::string> &to_choose) {
+//     std::size_t choice = 0;
+//     int key;
+//     disable_echo();
+//     // Print the initial model list
+//     print_vector(to_choose, choice, true);
+//     while (true) {
+//         key = console::getchar32();
+//         if (key == 27) { // Escape sequence starts with 27 (ESC)
+//             key = console::getchar32(); // Skip the '[' character
+//             key = console::getchar32(); // Get the actual arrow key
+
+//             switch (key) {
+//                 case 'A': // Up arrow key
+//                     if (choice > 0) {
+//                         choice--;
+//                     }
+//                     break;
+//                 case 'B': // Down arrow key
+//                     if (choice < to_choose.size() - 1) {
+//                         choice++;
+//                     }
+//                     break;
+//             }
+//         } else if (key == 10) { // Enter key
+//             enable_echo();
+//             return choice;
+//         }
+
+//         // Reprint the model list with the updated selection
+//         print_vector(to_choose, choice, false);
+//     }
+//     enable_echo();
+// }
+
+
+// Helper function to count the number of lines in a string
+std::size_t count_lines(const std::string& str) {
+    std::size_t count = 0;
+    std::istringstream stream(str);
+    std::string line;
+    while (std::getline(stream, line)) {
+        ++count;
+    }
+    return count;
+}
+
+// Function to print the vector with the current choice highlighted
+void print_vector(const std::vector<std::string>& to_choose, std::size_t current_choice, bool first_call_print) {
+    // Move the cursor up by the number of lines to overwrite them
+    if (!first_call_print) {
+        // Calculate total lines that were printed in the previous call
+        std::size_t total_lines = 0;
+        for (const auto& item : to_choose) {
+            total_lines += count_lines(item);  // Each item is followed by a newline
+        }
+
+        // Move up by the total number of lines and clear each line
+        for (std::size_t i = 0; i < total_lines; ++i) {
+            std::cout << "\033[F\033[K";  // Move up and clear the line
+        }
+    }
+
+    // Print the vector items
+    for (std::size_t i = 0; i < to_choose.size(); ++i) {
+        if (i == current_choice) {
+            // Highlight the current choice (reverse video mode)
+            std::cout << "[>] \033[7m" << to_choose[i] << "\033[0m" << std::endl;
+        } else {
+            std::cout << "    " << to_choose[i] << std::endl;
+        }
+    }
+}
+
+size_t choose_from_vector(const std::vector<std::string> &to_choose) {
+    std::size_t choice = 0;
+    int key;
+    disable_echo();  // Assuming this function disables input echo in terminal
+
+    // Print the initial model list
+    print_vector(to_choose, choice, true);
+    
+    while (true) {
+        key = console::getchar32();  // Assuming this reads a character input
+        if (key == 27) { // Escape sequence starts with 27 (ESC)
+            key = console::getchar32(); // Skip the '[' character
+            key = console::getchar32(); // Get the actual arrow key
+
+            switch (key) {
+                case 'A': // Up arrow key
+                    if (choice > 0) {
+                        choice--;
+                    }
+                    break;
+                case 'B': // Down arrow key
+                    if (choice < to_choose.size() - 1) {
+                        choice++;
+                    }
+                    break;
+            }
+        } else if (key == 10) { // Enter key
+            enable_echo();  // Re-enable echo before returning
+            return choice;
+        }
+
+        // Reprint the model list with the updated selection
+        print_vector(to_choose, choice, false);
+    }
+    
+    enable_echo();  // Just in case
 }
