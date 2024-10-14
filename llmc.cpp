@@ -113,24 +113,24 @@ static void print_usage(int argc, char ** argv) {
     // LOG("\n");
 }
 
-void render_markdown(const std::string& markdown) {
-    std::string formatted = markdown;
+// void render_markdown(const std::string& markdown) {
+//     std::string formatted = markdown;
 
-    // Bold: **text** or __text__
-    formatted = std::regex_replace(formatted, std::regex(R"(\*\*(.*?)\*\*)"), "\033[1m$1\033[0m");
-    formatted = std::regex_replace(formatted, std::regex(R"(__([^_]+)__)"), "\033[1m$1\033[0m");
+//     // Bold: **text** or __text__
+//     formatted = std::regex_replace(formatted, std::regex(R"(\*\*(.*?)\*\*)"), "\033[1m$1\033[0m");
+//     formatted = std::regex_replace(formatted, std::regex(R"(__([^_]+)__)"), "\033[1m$1\033[0m");
 
-    // Italic: *text* or _text_
-    formatted = std::regex_replace(formatted, std::regex(R"(\*(.*?)\*)"), "\033[3m$1\033[0m");
-    formatted = std::regex_replace(formatted, std::regex(R"(_([^_]+)_)"), "\033[3m$1\033[0m");
+//     // Italic: *text* or _text_
+//     formatted = std::regex_replace(formatted, std::regex(R"(\*(.*?)\*)"), "\033[3m$1\033[0m");
+//     formatted = std::regex_replace(formatted, std::regex(R"(_([^_]+)_)"), "\033[3m$1\033[0m");
 
-    // Headings: #, ##, ###...
-    formatted = std::regex_replace(formatted, std::regex(R"(### (.*))"), "\033[1m\033[4m$1\033[0m");
-    formatted = std::regex_replace(formatted, std::regex(R"(## (.*))"), "\033[1m$1\033[0m");
-    formatted = std::regex_replace(formatted, std::regex(R"(# (.*))"), "\033[1m\033[7m$1\033[0m");
+//     // Headings: #, ##, ###...
+//     formatted = std::regex_replace(formatted, std::regex(R"(### (.*))"), "\033[1m\033[4m$1\033[0m");
+//     formatted = std::regex_replace(formatted, std::regex(R"(## (.*))"), "\033[1m$1\033[0m");
+//     formatted = std::regex_replace(formatted, std::regex(R"(# (.*))"), "\033[1m\033[7m$1\033[0m");
 
-    std::cout << formatted << std::endl;
-}
+//     std::cout << formatted << std::endl;
+// }
 
 static bool file_exists(const std::string & path) {
     std::ifstream f(path.c_str());
@@ -614,15 +614,15 @@ int main(int argc, char ** argv) {
     // LOG_INF("\n");
 
     if (params.interactive) {
-        const char * control_message;
-        if (params.multiline_input) {
-            control_message = " - To return control to the AI, end your input with '\\'.\n"
-                              " - To return control without starting a new line, end your input with '/'.\n";
-        } else {
-            control_message = " - Press Return to return control to the AI.\n"
-                              " - To return control without starting a new line, end your input with '/'.\n"
-                              " - If you want to submit another line, end your input with '\\'.\n";
-        }
+        // const char * control_message;
+        // if (params.multiline_input) {
+        //     control_message = " - To return control to the AI, end your input with '\\'.\n"
+        //                       " - To return control without starting a new line, end your input with '/'.\n";
+        // } else {
+        //     control_message = " - Press Return to return control to the AI.\n"
+        //                       " - To return control without starting a new line, end your input with '/'.\n"
+        //                       " - If you want to submit another line, end your input with '\\'.\n";
+        // }
         // LOG_INF("== Running in interactive mode. ==\n");
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__)) || defined (_WIN32)
         // LOG_INF(       " - Press Ctrl+C to interject at any time.\n");
@@ -679,12 +679,11 @@ int main(int argc, char ** argv) {
         embd_inp.push_back(decoder_start_token_id);
     }
 
-    bool instruction_seen = false;
-
     // Buffer system to check for "### Instruction" and subsequent "###"
     std::string output_buffer = "";
     std::queue<std::string> unlogged_output;
     size_t buffer_threshold = 32;
+    int early_stop_pos = -1;
 
     while ((n_remain != 0 && !is_antiprompt) || params.interactive) {
         // predict
@@ -695,7 +694,7 @@ int main(int argc, char ** argv) {
 
             // Ensure the input doesn't exceed the context size by truncating embd if necessary.
             if ((int) embd.size() > max_embd_size) {
-                const int skipped_tokens = (int) embd.size() - max_embd_size;
+                // const int skipped_tokens = (int) embd.size() - max_embd_size;
                 embd.resize(max_embd_size);
 
                 // console::set_display(console::error);
@@ -868,7 +867,10 @@ int main(int argc, char ** argv) {
                     unlogged_output.pop();
                 }
 
-                if (check_early_stop(output_buffer, unlogged_output.size())) {
+                early_stop_pos = check_early_stop(output_buffer);
+                if (early_stop_pos != -1) {
+                    printf("early_stop_pos %d\n", early_stop_pos);
+                    printf("output_buffer.length() %d\n", output_buffer.length());
                     break;
                 }
 
@@ -928,12 +930,11 @@ int main(int argc, char ** argv) {
                     output_ss << token_str;
                 }
             }
-            while (!unlogged_output.empty()) {
-                LOG("%s", unlogged_output.front().c_str());
-                unlogged_output.pop();
-            }
         }
 
+        if (early_stop_pos != -1) {
+            break;
+        }
         // reset color to default if there is no pending user input
         if (input_echo && (int) embd_inp.size() == n_consumed) {
             // console::set_display(console::reset);
@@ -1120,6 +1121,20 @@ int main(int argc, char ** argv) {
             is_interacting = true;
         }
     }
+
+    printf("&&&&&&&&&&&&&&&&&&& early_stop_pos = %d\n", early_stop_pos);
+    if (early_stop_pos != -1) {
+        printf("early stop at %d\n", early_stop_pos);
+        printf("output_buffer.length() = %d\n", output_buffer.length());
+        printf("unlogged_output.size() = %d\n", unlogged_output.size());
+        while (unlogged_output.size() > output_buffer.length() - early_stop_pos) {
+            LOG("%s", unlogged_output.front().c_str());
+            unlogged_output.pop();
+        }
+        output_buffer = output_buffer.substr(0, early_stop_pos);
+    }
+    
+    
     
     
     
@@ -1130,12 +1145,12 @@ int main(int argc, char ** argv) {
         llama_state_save_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.size());
     }
 
-    std::string output = output_ss.str();
+    // std::string output = output_ss.str();
 
     // std::vector<std::string> output_lines = extract_bash_blocks(output);
 
-    std::vector<std::string> output_lines = extract_suggestions(output);
-    
+    std::vector<std::string> output_lines = extract_suggestions(output_buffer);
+    printf("====================================\n");
     for (const std::string & line : output_lines) {
         // LOG("%s\n", line.c_str());
         printf("%s\n", line.c_str());

@@ -181,4 +181,3 @@ std::string trim(const std::string &str) {
     size_t end = str.find_last_not_of(" \t\n\r\f\v");
     return str.substr(start, end - start + 1);
 }
-

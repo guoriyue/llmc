@@ -41,5 +41,4 @@ std::string edit_prefilled_input(const std::string &prefilled_text);
 
 // Function to trim leading and trailing whitespace from a string
 std::string trim(const std::string &str);
-
 #endif // INPUT_MANAGER_H

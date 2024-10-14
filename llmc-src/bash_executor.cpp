@@ -68,7 +68,11 @@ std::vector<std::string> extract_suggestions(const std::string& input) {
 
     std::string potential_suggestion = first_output + example + instruction;
 
-    std::vector<std::string> blocks = extract_strs(potential_suggestion, R"(```([\s\S]*?)```)");
+    std::vector<std::string> blocks = extract_strs(potential_suggestion, R"(```bash([\s\S]*?)```)");
+
+    if (blocks.size() == 0) {
+        blocks = extract_strs(potential_suggestion, R"(```([\s\S]*?)```)"); 
+    }
 
     for (const std::string& block : blocks) {
         std::string clean_bash_command = trim(block);
@@ -79,22 +83,16 @@ std::vector<std::string> extract_suggestions(const std::string& input) {
     return suggestions;
 }
 
-bool has_two_instructions(const std::string& input, const std::string& delimiter) {
+size_t get_num_delimiters(const std::string& input, const std::string& delimiter) {
+    size_t pos = 0;
+    size_t n_delimiters = 0;
 
-    size_t first_pos = input.find(delimiter);
-
-    // Check if the first "### Instruction" exists
-    if (first_pos != std::string::npos) {
-        // Find the second "### Instruction" after the first one
-        size_t second_pos = input.find(delimiter, first_pos + delimiter.length());
-
-        // Check if the second one exists
-        if (second_pos != std::string::npos) {
-            return true; // Two occurrences found
-        }
+    while ((pos = input.find(delimiter, pos)) != std::string::npos) {
+        n_delimiters++;
+        pos += delimiter.length();
     }
 
-    return false; // Less than two occurrences found
+    return n_delimiters;
 }
 
 size_t get_nth_delimiters(const std::string& input, const std::string& delimiter, size_t n) {
@@ -113,44 +111,24 @@ size_t get_nth_delimiters(const std::string& input, const std::string& delimiter
 }
 
 
-bool check_early_stop(const std::string& output_buffer, size_t unlogged_output_size) {
+size_t check_early_stop(const std::string& output_buffer) {
     // if 2 Instruction or Example blocks are found, stop early
-    if (has_two_instructions(output_buffer, "###")) {
-        size_t pos = get_nth_delimiters(output_buffer, "###", 2);
-        std::string last_buffer = output_buffer.substr(output_buffer.length() - unlogged_output_size, pos);
-        printf("%s", last_buffer.c_str());
-        return true;
+    if (get_num_delimiters(output_buffer, "###") >= 3) {
+        return get_nth_delimiters(output_buffer, "###", 3);
     }
-    // if (has_two_instructions(output_buffer, "### Instruction")) {
-    //     size_t pos = get_nth_delimiters(output_buffer, "### Instruction", 2);
-    //     std::string last_buffer = output_buffer.substr(output_buffer.length() - unlogged_output_size, pos);
-    //     printf("%s", last_buffer.c_str());
-    //     return true;
-    // }
-    // if (has_two_instructions(output_buffer, "### Example")) {
-    //     size_t pos = get_nth_delimiters(output_buffer, "### Example", 2);
-    //     std::string last_buffer = output_buffer.substr(output_buffer.length() - unlogged_output_size, pos);
-    //     printf("%s", last_buffer.c_str());
-    //     return true;
-    // }
-    // if (has_two_instructions(output_buffer, "Instruction:")) {
-    //     size_t pos = get_nth_delimiters(output_buffer, "Instruction:", 2);
-    //     std::string last_buffer = output_buffer.substr(output_buffer.length() - unlogged_output_size, pos);
-    //     printf("%s", last_buffer.c_str());
-    //     return true;
-    // }
+    if (get_num_delimiters(output_buffer, "### Instruction") >= 2) {
+        return get_nth_delimiters(output_buffer, "### Instruction", 2);
+    }
+    if (get_num_delimiters(output_buffer, "### Example") >= 2) {
+        return get_nth_delimiters(output_buffer, "### Example", 2);
+    }
     // if has ### References
     if (output_buffer.find("### References") != std::string::npos) {
-        size_t pos = output_buffer.find("### References");
-        std::string last_buffer = output_buffer.substr(output_buffer.length() - unlogged_output_size, pos);
-        printf("%s", last_buffer.c_str());
-        return true;
+        return output_buffer.find("### References");
     }
     if (output_buffer.find("####") != std::string::npos) {
-        size_t pos = output_buffer.find("####");
-        std::string last_buffer = output_buffer.substr(output_buffer.length() - unlogged_output_size, pos);
-        printf("%s", last_buffer.c_str());
-        return true;
+        return output_buffer.find("####");
     }
-    return false;
+    // return false;
+    return -1;
 }
