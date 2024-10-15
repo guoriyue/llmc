@@ -220,6 +220,7 @@ static std::string chat_add_and_format(struct llama_model * model, std::vector<l
 }
 
 int main(int argc, char ** argv) {
+
     gpt_params params;
     g_params = &params;
     if (!gpt_params_parse(argc, argv, params, LLAMA_EXAMPLE_MAIN, print_usage)) {
@@ -1156,7 +1157,7 @@ int main(int argc, char ** argv) {
     while (!output_lines.empty()) {
         print_centered_message("Choose a Command", PRINT_LENGTH);
         size_t chosen_cmd = choose_from_vector(output_lines);
-        std::string edited_cmd =  edit_prefilled_input_single_line(output_lines[chosen_cmd]);
+        std::string edited_cmd =  edit_prefilled_input(output_lines[chosen_cmd]);
         exec_command(edited_cmd);
         // output_lines.erase(output_lines.begin() + chosen_cmd);
     }

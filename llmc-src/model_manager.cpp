@@ -141,7 +141,7 @@ std::string model_manager::set_model() {
         std::cout << "Please enter the local path to the custom model: \n";
         // std::getline(std::cin, custom_model_path);
         // std::cin >> custom_model_path;
-        custom_model_path = edit_prefilled_input_single_line("");
+        custom_model_path = edit_prefilled_input("");
         custom_model_path = trim(custom_model_path);
         // bool another_line = console::readline(custom_model_path, false);
         // std::cout << "Please enter your custom prompt: \n";
