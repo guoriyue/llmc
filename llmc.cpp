@@ -57,41 +57,69 @@ std::string command_prompt = R"(
 You are a command-line tool helper designed to assist developers in generating accurate and executable shell commands. Given a user request or problem description, generate the appropriate command to solve the issue, and explain each part of the command briefly. Always ensure the solution is correct, efficient, and follows best practices. Do not repeat yourself and provide clear and concise explanations.
 
 ### Instruction: show current directory
-Command: pwd
-Explanation: Prints the current working directory.
+Command:
+```shell
+pwd
+```
+Explanation: 
+- Prints the current working directory.
 
 ### Instruction: list all files in the current directory
-Command: ls
-Explanation: Lists all files and directories in the current directory.
+Command: 
+```shell
+ls
+```
+Explanation: 
+- Lists all files and directories in the current directory.
 
 ### Instruction: show IP address
-Command: ip addr show
-Explanation: Displays all network interfaces and their IP addresses.
+Command: 
+```shell
+ip addr show
+```
+Explanation: 
+- Displays all network interfaces and their IP addresses.
 
 ### Instruction: update my system
-Command: sudo apt update && sudo apt upgrade -y
+Command: 
+```shell
+sudo apt update && sudo apt upgrade -y
+```
 Explanation:
 - `sudo apt update`: Updates the list of available packages.
 - `sudo apt upgrade -y`: Upgrades all installed packages without prompting for confirmation.
 
 ### Instruction: create a folder here named my_new_music and put a new text file named awesome_playlist.md in it
-Command: mkdir my_new_music && touch my_new_music/awesome_playlist.md
+Command: 
+```shell
+mkdir my_new_music && touch my_new_music/awesome_playlist.md
+```
 Explanation:
 - `mkdir my_new_music`: Creates a new directory named 'my_new_music'.
 - `touch my_new_music/awesome_playlist.md`: Creates a new file named 'awesome_playlist.md' inside the 'my_new_music' directory.
 
 ### Instruction: delete the folder oldies_goldies
-Command: rm -rf oldies_goldies
+Command: 
+```shell
+rm -rf oldies_goldies
+```
 Explanation:
 - `rm -rf oldies_goldies`: Recursively and forcefully deletes the 'oldies_goldies' directory and its contents.
 - **Warning**: This command permanently deletes files and directories without confirmation.
 
 ### Instruction: show all Docker containers
-Command: docker ps
-Explanation: Lists all running Docker containers.
+Command: 
+```shell
+docker ps
+```
+Explanation: 
+- Lists all running Docker containers.
 
 ### Instruction: mistakenly pushed large files to GitHub, please remove them from the git history
-Command: git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch <file/dir>' HEAD
+Command: 
+```shell
+git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch <file/dir>' HEAD
+```
 Explanation:
 - `git filter-branch`: Rewrites Git history by applying filters to each commit.
 - `--index-filter 'git rm -r --cached --ignore-unmatch <file/dir>'`: Removes the specified file or directory from each commit.
@@ -99,7 +127,10 @@ Explanation:
 - **Note**: Replace `<file/dir>` with the actual file or directory you want to remove.
 
 ### Instruction: create a Python 3.11 conda environment
-Command: conda create -n "myenv" python=3.11
+Command: 
+```shell
+conda create -n "myenv" python=3.11
+```
 Explanation:
 - `conda create -n "myenv" python=3.11`: Creates a new Conda environment named 'myenv' with Python version 3.11.
 
@@ -318,9 +349,10 @@ int main(int argc, char ** argv) {
     // params.prompt = "give me a shell command to do this: " + params.prompt;
     // params.system_prompt = shell_prompt;
 
-
-    params.prompt = "### Instruction: " + params.prompt;
-    params.system_prompt = command_prompt;
+    printf("%s", params.prompt.c_str());
+    params.prompt = command_prompt + "\n### Instruction: " + params.prompt;
+    // params.system_prompt = command_prompt;
+   
 
     llama_backend_init();
     llama_numa_init(params.numa);
@@ -872,10 +904,7 @@ int main(int argc, char ** argv) {
                 unlogged_output.pop();
             }
 
-            early_stop_pos = check_early_stop(output_buffer);
-            if (early_stop_pos != -1) {
-                break;
-            }
+            
 
             // if (token_str.find("#") == std::string::npos && unlogged_text.find("#") == std::string::npos) {
             //     LOG("%s", unlogged_text.c_str());
@@ -932,11 +961,14 @@ int main(int argc, char ** argv) {
                 output_tokens.push_back(id);
                 output_ss << token_str;
             }
+
+            early_stop_pos = check_early_stop(output_buffer);
+            if (early_stop_pos != -1) {
+                break;
+            }
         }
 
-        if (early_stop_pos != -1) {
-            break;
-        }
+        
         // reset color to default if there is no pending user input
         if (input_echo && (int) embd_inp.size() == n_consumed) {
             // console::set_display(console::reset);
@@ -1122,6 +1154,9 @@ int main(int argc, char ** argv) {
             n_remain = params.n_predict;
             is_interacting = true;
         }
+        if (early_stop_pos != -1) {
+            break;
+        }  
     }
 
     

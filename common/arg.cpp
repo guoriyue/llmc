@@ -426,13 +426,13 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     //         params.display_prompt = false;
     //     }
     // ).set_examples({LLAMA_EXAMPLE_MAIN}));
-    // add_opt(llama_arg(
-    //     {"--display-prompt"},
-    //     format("print prompt at generation (default: %s)", !params.display_prompt ? "true" : "false"),
-    //     [](gpt_params & params) {
-    //         params.display_prompt = true;
-    //     }
-    // ).set_examples({LLAMA_EXAMPLE_MAIN}));
+    add_opt(llama_arg(
+        {"--display-prompt"},
+        format("print prompt at generation (default: %s)", !params.display_prompt ? "true" : "false"),
+        [](gpt_params & params) {
+            params.display_prompt = true;
+        }
+    ).set_examples({LLAMA_EXAMPLE_MAIN}));
     add_opt(llama_arg(
         {"-co", "--color"},
         format("colorise output to distinguish prompt and user input from generations (default: %s)", params.use_color ? "true" : "false"),

@@ -107,6 +107,9 @@ std::vector<std::string> extract_suggestions(const std::string& input) {
         blocks = extract_strs(potential_suggestion, R"(```shell([\s\S]*?)```)"); 
     }
     if (blocks.size() == 0) {
+        blocks = extract_strs(potential_suggestion, R"(```sh([\s\S]*?)```)"); 
+    }
+    if (blocks.size() == 0) {
         // blocks = extract_strs(potential_suggestion, R"(```([\s\S]*?)```)"); 
         std::string regex_str = R"(```(?![a-zA-Z]+)([\s\S]*?)```)";
     }
