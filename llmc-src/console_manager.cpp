@@ -115,101 +115,10 @@ void move_forward_one_word(const std::string &input, size_t &pos) {
     refresh_line(input, pos);
 }
 
-// // Function to allow inline editing of prefilled input with cursor movement
-// std::string edit_prefilled_input(const std::string &prefilled_text) {
-//     std::string input = prefilled_text;
-//     size_t pos = input.length();  // Cursor position starts at the end of the prefilled text
-//     int ch;
-
-//     // Save the original terminal settings
-//     termios orig_termios;
-//     tcgetattr(STDIN_FILENO, &orig_termios);
-
-//     // Enable raw mode for capturing character-by-character input
-//     enable_raw_mode(orig_termios);
-
-//     // Print the prefilled text
-//     std::cout << prefilled_text;
-//     std::cout.flush();
-
-//     // Read input character by character
-//     while ((ch = getchar()) != '\n') {
-//         if (ch == 127 || ch == '\b') {  // Handle backspace
-//             if (pos > 0) {
-//                 input.erase(--pos, 1);  // Remove character at cursor
-//                 refresh_line(input, pos);
-//             }
-//         } else if (ch == 27) {  // Escape character (arrow keys or Alt+B/F)
-//             int key = handle_escape_sequence();
-//             if (key == 'C' && pos < input.length()) {  // Right arrow
-//                 std::cout << "\033[C";  // Move cursor right
-//                 pos++;
-//             } else if (key == 'D' && pos > 0) {  // Left arrow
-//                 std::cout << "\033[D";  // Move cursor left
-//                 pos--;
-//             } else if (key == 'b' && pos > 0) {  // Alt+B (move back one word)
-//                 move_back_one_word(input, pos);
-//             } else if (key == 'f' && pos < input.length()) {  // Alt+F (move forward one word)
-//                 move_forward_one_word(input, pos);
-//             }
-//         } else if (ch == 1) {  // CTRL+A (move to start of line)
-//             pos = 0;
-//             refresh_line(input, pos);
-//         } else if (ch == 5) {  // CTRL+E (move to end of line)
-//             pos = input.length();
-//             refresh_line(input, pos);
-//         } else if (ch >= 32 && ch <= 126) {  // Handle printable characters
-//             input.insert(pos, 1, ch);  // Insert character at cursor position
-//             pos++;  // Move cursor forward
-//             refresh_line(input, pos);  // Reprint the string and move the cursor to the correct position
-//         }
-//         std::cout.flush();
-//     }
-
-//     // Restore the original terminal settings
-//     disable_raw_mode(orig_termios);
-    
-//     std::cout << std::endl;  // Move to the next line after user presses Enter
-//     return input;
-// }
-
-// Function to split input into lines
-std::vector<std::string> split_into_lines(const std::string& input) {
-    std::vector<std::string> lines;
-    std::string current_line;
-    for (char c : input) {
-        if (c == '\n') {
-            lines.push_back(current_line);
-            current_line.clear();
-        } else {
-            current_line.push_back(c);
-        }
-    }
-    lines.push_back(current_line);
-    return lines;
-}
-
-// Function to reprint the entire input with the cursor at the correct position
-void refresh_multiline(const std::vector<std::string>& lines, size_t pos_y, size_t pos_x) {
-    // Move cursor up by the number of printed lines
-    for (size_t i = 0; i < lines.size(); ++i) {
-        std::cout << "\033[F\033[K";  // Move cursor up and clear the line
-    }
-    
-    // Reprint the input with line breaks
-    for (const auto& line : lines) {
-        std::cout << line << std::endl;
-    }
-
-    // Move the cursor to the correct line and position
-    std::cout << "\033[" << (lines.size() - pos_y) << "F";  // Move cursor up to the correct line
-    std::cout << "\033[" << (pos_x + 1) << "G";  // Move cursor to the correct column
-}
-
-std::string edit_prefilled_input(const std::string &prefilled_text) {
-    std::vector<std::string> lines = split_into_lines(prefilled_text);
-    size_t pos_x = lines.back().length();  // Horizontal cursor position (start at the end of the last line)
-    size_t pos_y = lines.size() - 1;  // Vertical cursor position (start at the last line)
+// Function to allow inline editing of prefilled input with cursor movement
+std::string edit_prefilled_input_single_line(const std::string &prefilled_text) {
+    std::string input = prefilled_text;
+    size_t pos = input.length();  // Cursor position starts at the end of the prefilled text
     int ch;
 
     // Save the original terminal settings
@@ -220,59 +129,50 @@ std::string edit_prefilled_input(const std::string &prefilled_text) {
     enable_raw_mode(orig_termios);
 
     // Print the prefilled text
-    for (const auto& line : lines) {
-        std::cout << line << std::endl;
-    }
+    std::cout << prefilled_text;
     std::cout.flush();
 
     // Read input character by character
     while ((ch = getchar()) != '\n') {
         if (ch == 127 || ch == '\b') {  // Handle backspace
-            if (pos_x > 0) {
-                lines[pos_y].erase(--pos_x, 1);  // Remove character at cursor
-                refresh_multiline(lines, pos_y, pos_x);
-            } else if (pos_y > 0) {  // Handle backspace at the start of a line (merge with previous line)
-                pos_x = lines[pos_y - 1].length();
-                lines[pos_y - 1] += lines[pos_y];
-                lines.erase(lines.begin() + pos_y);
-                --pos_y;
-                refresh_multiline(lines, pos_y, pos_x);
+            if (pos > 0) {
+                input.erase(--pos, 1);  // Remove character at cursor
+                refresh_line(input, pos);
             }
         } else if (ch == 27) {  // Escape character (arrow keys or Alt+B/F)
             int key = handle_escape_sequence();
-            if (key == 'C' && pos_x < lines[pos_y].length()) {  // Right arrow
+            if (key == 'C' && pos < input.length()) {  // Right arrow
                 std::cout << "\033[C";  // Move cursor right
-                pos_x++;
-            } else if (key == 'D' && pos_x > 0) {  // Left arrow
+                pos++;
+            } else if (key == 'D' && pos > 0) {  // Left arrow
                 std::cout << "\033[D";  // Move cursor left
-                pos_x--;
-            } else if (key == 'A' && pos_y > 0) {  // Up arrow
-                --pos_y;
-                pos_x = std::min(pos_x, lines[pos_y].length());  // Clamp cursor to the current line's length
-                refresh_multiline(lines, pos_y, pos_x);
-            } else if (key == 'B' && pos_y < lines.size() - 1) {  // Down arrow
-                ++pos_y;
-                pos_x = std::min(pos_x, lines[pos_y].length());  // Clamp cursor to the current line's length
-                refresh_multiline(lines, pos_y, pos_x);
+                pos--;
+            } else if (key == 'b' && pos > 0) {  // Alt+B (move back one word)
+                move_back_one_word(input, pos);
+            } else if (key == 'f' && pos < input.length()) {  // Alt+F (move forward one word)
+                move_forward_one_word(input, pos);
             }
+        } else if (ch == 1) {  // CTRL+A (move to start of line)
+            pos = 0;
+            refresh_line(input, pos);
+        } else if (ch == 5) {  // CTRL+E (move to end of line)
+            pos = input.length();
+            refresh_line(input, pos);
         } else if (ch >= 32 && ch <= 126) {  // Handle printable characters
-            lines[pos_y].insert(pos_x, 1, ch);  // Insert character at cursor position
-            pos_x++;  // Move cursor forward
-            refresh_multiline(lines, pos_y, pos_x);  // Reprint the string and move the cursor to the correct position
+            input.insert(pos, 1, ch);  // Insert character at cursor position
+            pos++;  // Move cursor forward
+            refresh_line(input, pos);  // Reprint the string and move the cursor to the correct position
         }
         std::cout.flush();
     }
 
     // Restore the original terminal settings
     disable_raw_mode(orig_termios);
-
-    // Combine lines into a single string and return it
-    std::string final_input;
-    for (const auto& line : lines) {
-        final_input += line + '\n';  // Combine lines with newlines
-    }
-    return final_input;
+    
+    std::cout << std::endl;  // Move to the next line after user presses Enter
+    return input;
 }
+
 std::string trim(const std::string &str) {
     size_t start = str.find_first_not_of(" \t\n\r\f\v");
     if (start == std::string::npos)

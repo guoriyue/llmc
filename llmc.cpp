@@ -196,6 +196,7 @@ static void sigint_handler(int signo) {
             need_insert_eot = true;
         } else {
             console::cleanup();
+            LOG("Successfully exited\n");
             // LOG("\n");
             // gpt_perf_print(*g_ctx, *g_smpl);
             // write_logfile(*g_ctx, *g_params, *g_model, *g_input_tokens, g_output_ss->str(), *g_output_tokens);
@@ -1155,7 +1156,7 @@ int main(int argc, char ** argv) {
     while (!output_lines.empty()) {
         print_centered_message("Choose a Command", PRINT_LENGTH);
         size_t chosen_cmd = choose_from_vector(output_lines);
-        std::string edited_cmd = edit_prefilled_input(output_lines[chosen_cmd]);
+        std::string edited_cmd =  edit_prefilled_input_single_line(output_lines[chosen_cmd]);
         exec_command(edited_cmd);
         // output_lines.erase(output_lines.begin() + chosen_cmd);
     }

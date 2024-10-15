@@ -37,4 +37,4 @@ Supported Models
 TODO
 ----
 
-- Implement CI/CD pipeline
+- CI/CD pipeline

@@ -37,7 +37,9 @@ void move_back_one_word(const std::string &input, size_t &pos);
 void move_forward_one_word(const std::string &input, size_t &pos);
 
 // Function to allow inline editing of prefilled input with cursor movement
-std::string edit_prefilled_input(const std::string &prefilled_text);
+std::string edit_prefilled_input_single_line(const std::string &prefilled_text);
+
+// std::string edit_prefilled_input_multiline(const std::string &prefilled_text);
 
 // Function to trim leading and trailing whitespace from a string
 std::string trim(const std::string &str);
