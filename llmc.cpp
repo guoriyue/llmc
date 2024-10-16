@@ -292,7 +292,7 @@ int main(int argc, char ** argv) {
     if (params.model == DEFAULT_MODEL_PATH) {
         // users do not explicitly set a model
         std::string model_path = mm.read_model_path();
-        if (model_path.empty() || params.llmc_setup) {
+        if (model_path.empty()) {
             // force to reset the model
             printf("Setting up the model for llmc\n");
             params.model = mm.set_model();
@@ -304,8 +304,15 @@ int main(int argc, char ** argv) {
         }
     }
 
-    if (params.llmc_show_config) {
-        mm.show_config();
+    // if (params.llmc_save_args) {
+    //     // LOG_INF("%s: saving arguments for frequent future use\n", __func__);
+    //     // LOG_INF("%s: saving arguments for frequent future use\n", __func__);
+    //     // return 0;
+    //     mm.save_args(params);
+    // }
+
+    if (params.llmc_show_args) {
+        mm.show_args();
         return 0;
     }
     // llmc_reset
@@ -314,6 +321,7 @@ int main(int argc, char ** argv) {
         return 0;
     }
 
+    
     // std::string shell_prompt = R"(You are a command line tool helper designed to assist developers in generating accurate and executable shell commands. Given a user request or problem description, generate the appropriate command to solve the issue, and explain each part of the command briefly. Always ensure the solution is correct, efficient, and follows best practices.
     
     //                             ##Instruction: show current directory

@@ -28,7 +28,7 @@
 //     #include <unistd.h>   // For STDIN_FILENO
 // #endif
 // #include <cstdio>
-void model_manager::show_config() {
+void model_manager::show_args() {
     std::string config_path = fs_get_cache_file(CONFIG_FILE);
     std::ifstream
         infile(config_path);

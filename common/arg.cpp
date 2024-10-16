@@ -12,6 +12,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <unordered_map>
+#include <any>
 
 #include "json-schema-to-grammar.h"
 
@@ -2038,13 +2040,13 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
             params.usage = true;
         }
     ).set_examples({LLMC_MAIN}));
-    add_opt(llama_arg(
-        {"--setup"},
-        "Set up your llmc: choose or customize the model",
-        [](gpt_params & params) {
-            params.llmc_setup = true;
-        }
-    ).set_examples({LLMC_MAIN}));
+    // add_opt(llama_arg(
+    //     {"--setup"},
+    //     "Set up your llmc: choose or customize the model",
+    //     [](gpt_params & params) {
+    //         params.llmc_setup = true;
+    //     }
+    // ).set_examples({LLMC_MAIN}));
     // add_opt(llama_arg(
     //     {"--reset"},
     //     "Reset llmc to its default model and prompt",
@@ -2053,10 +2055,17 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     //     }
     // ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
-        {"--show-config"},
+        {"--show-args"},
         "Show llmc configuration",
         [](gpt_params & params) {
-            params.llmc_show_config = true;
+            params.llmc_show_args = true;
+        }
+    ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--save-args"},
+        "Save arguments for frequent future use, e.g. '--save-args -c 4096' will save the context size as 4096",
+        [](gpt_params & params) {
+            params.llmc_save_args = true;
         }
     ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(

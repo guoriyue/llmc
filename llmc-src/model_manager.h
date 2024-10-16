@@ -31,7 +31,9 @@ public:
     void save_model_path(const std::string& path);
     // void print_models(const std::vector<std::string>& models, std::size_t current_choice);
     // std::string editable_input();
-    void show_config();
+    void show_args();
+
+    void save_args(const gpt_params & params);
 };
 
 #endif // MODEL_MANAGER_H
