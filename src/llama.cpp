@@ -6201,7 +6201,7 @@ static void llm_load_vocab(
         llama_model_loader & ml,
         llama_model & model) {
     auto & vocab = model.vocab;
-
+    bool trace = ml.trace;
     struct gguf_context * ctx = ml.meta;
 
     const auto kv = LLM_KV(model.arch);
@@ -6231,6 +6231,7 @@ static void llm_load_vocab(
             if (!ml.get_key(LLM_KV_VOCAB_SIZE, vocab.n_vocab, false)) {
                 vocab.n_vocab = 0;
                 // LLAMA_LOG_WARN("%s: there is no vocab_size in metadata, vocab.n_vocab will be set to %u\n", __func__, vocab.n_vocab);
+                LLAMA_LOG_WARN_TRACE(trace, "%s: there is no vocab_size in metadata, vocab.n_vocab will be set to %u\n", __func__, vocab.n_vocab);
             }
             return;
         }
@@ -6339,13 +6340,21 @@ static void llm_load_vocab(
             vocab.tokenizer_add_space_prefix = false;
             vocab.tokenizer_clean_spaces = true;
             if (tokenizer_pre.empty()) {
-                LLAMA_LOG_WARN("%s: missing pre-tokenizer type, using: 'default'\n", __func__);
-                LLAMA_LOG_WARN("%s:                                             \n", __func__);
-                LLAMA_LOG_WARN("%s: ************************************        \n", __func__);
-                LLAMA_LOG_WARN("%s: GENERATION QUALITY WILL BE DEGRADED!        \n", __func__);
-                LLAMA_LOG_WARN("%s: CONSIDER REGENERATING THE MODEL             \n", __func__);
-                LLAMA_LOG_WARN("%s: ************************************        \n", __func__);
-                LLAMA_LOG_WARN("%s:                                             \n", __func__);
+                // LLAMA_LOG_WARN("%s: missing pre-tokenizer type, using: 'default'\n", __func__);
+                // LLAMA_LOG_WARN("%s:                                             \n", __func__);
+                // LLAMA_LOG_WARN("%s: ************************************        \n", __func__);
+                // LLAMA_LOG_WARN("%s: GENERATION QUALITY WILL BE DEGRADED!        \n", __func__);
+                // LLAMA_LOG_WARN("%s: CONSIDER REGENERATING THE MODEL             \n", __func__);
+                // LLAMA_LOG_WARN("%s: ************************************        \n", __func__);
+                // LLAMA_LOG_WARN("%s:                                             \n", __func__);
+                LLAMA_LOG_WARN_TRACE(trace, "%s: missing pre-tokenizer type, using: 'default'\n", __func__);
+                LLAMA_LOG_WARN_TRACE(trace, "%s:                                             \n", __func__);
+                LLAMA_LOG_WARN_TRACE(trace, "%s: ************************************        \n", __func__);
+                LLAMA_LOG_WARN_TRACE(trace, "%s: GENERATION QUALITY WILL BE DEGRADED!        \n", __func__);
+                LLAMA_LOG_WARN_TRACE(trace, "%s: CONSIDER REGENERATING THE MODEL             \n", __func__);
+                LLAMA_LOG_WARN_TRACE(trace, "%s: ************************************        \n", __func__);
+                LLAMA_LOG_WARN_TRACE(trace, "%s:                                             \n", __func__);
+
                 vocab.type_pre = LLAMA_VOCAB_PRE_TYPE_DEFAULT;
             } else if (tokenizer_pre == "default") {
                 vocab.type_pre = LLAMA_VOCAB_PRE_TYPE_DEFAULT;
@@ -6508,7 +6517,8 @@ static void llm_load_vocab(
 
         //GGML_ASSERT(unicode_cpts_from_utf8(word).size() > 0);
         if (word.empty()) {
-            LLAMA_LOG_WARN("%s: empty token at index %u\n", __func__, i);
+            // LLAMA_LOG_WARN("%s: empty token at index %u\n", __func__, i);
+            LLAMA_LOG_WARN_TRACE(trace, "%s: empty token at index %u\n", __func__, i);
             word = "[EMPTY_" + std::to_string(i) + "]";
         }
 
@@ -6580,7 +6590,8 @@ static void llm_load_vocab(
         try {
             vocab.linefeed_id = llama_byte_to_token_impl(vocab, '\n');
         } catch (const std::exception & e) {
-            LLAMA_LOG_WARN("%s: SPM vocabulary, but newline token not found: %s! Using special_pad_id instead.", __func__, e.what());
+            // LLAMA_LOG_WARN("%s: SPM vocabulary, but newline token not found: %s! Using special_pad_id instead.", __func__, e.what());
+            LLAMA_LOG_WARN_TRACE(trace, "%s: SPM vocabulary, but newline token not found: %s! Using special_pad_id instead.", __func__, e.what());
             vocab.linefeed_id = vocab.special_pad_id;
         }
     } else if (vocab.type == LLAMA_VOCAB_TYPE_WPM) {
@@ -6594,7 +6605,8 @@ static void llm_load_vocab(
 
         //GGML_ASSERT(!ids.empty() && "model vocab missing newline token");
         if (ids.empty()) {
-            LLAMA_LOG_WARN("%s: model vocab missing newline token, using special_pad_id instead\n", __func__);
+            // LLAMA_LOG_WARN("%s: model vocab missing newline token, using special_pad_id instead\n", __func__);
+            LLAMA_LOG_WARN_TRACE(trace, "%s: model vocab missing newline token, using special_pad_id instead\n", __func__);
             vocab.linefeed_id = vocab.special_pad_id;
         } else {
             vocab.linefeed_id = ids[0];
@@ -6627,7 +6639,9 @@ static void llm_load_vocab(
                 continue;
             }
             if (new_id >= vocab.id_to_token.size()) {
-                LLAMA_LOG_WARN("%s: bad special token: '%s' = %ud, using default id %d\n",
+                // LLAMA_LOG_WARN("%s: bad special token: '%s' = %ud, using default id %d\n",
+                //     __func__, key.c_str(), new_id, id);
+                LLAMA_LOG_WARN_TRACE(trace, "%s: bad special token: '%s' = %ud, using default id %d\n",
                     __func__, key.c_str(), new_id, id);
             } else {
                 id = new_id;
@@ -6665,7 +6679,9 @@ static void llm_load_vocab(
                    ) {
                     vocab.special_eot_id = t.second;
                     if ((vocab.id_to_token[t.second].attr & LLAMA_TOKEN_ATTR_CONTROL) == 0) {
-                        LLAMA_LOG_WARN("%s: control-looking token: '%s' was not control-type; this is probably a bug in the model. its type will be overridden\n",
+                        // LLAMA_LOG_WARN("%s: control-looking token: '%s' was not control-type; this is probably a bug in the model. its type will be overridden\n",
+                        //         __func__, t.first.c_str());
+                        LLAMA_LOG_WARN_TRACE(trace, "%s: control-looking token: '%s' was not control-type; this is probably a bug in the model. its type will be overridden\n",
                                 __func__, t.first.c_str());
                         vocab.id_to_token[t.second].attr = LLAMA_TOKEN_ATTR_CONTROL;
                     }
@@ -6683,7 +6699,9 @@ static void llm_load_vocab(
             if (t != vocab.token_to_id.end()) {
                 vocab.special_eom_id = t->second;
                 if ((vocab.id_to_token[t->second].attr & LLAMA_TOKEN_ATTR_CONTROL) == 0) {
-                    LLAMA_LOG_WARN("%s: control-looking token: '%s' was not control-type; this is probably a bug in the model. its type will be overridden\n",
+                    // LLAMA_LOG_WARN("%s: control-looking token: '%s' was not control-type; this is probably a bug in the model. its type will be overridden\n",
+                    //     __func__, t->first.c_str());
+                    LLAMA_LOG_WARN_TRACE(trace, "%s: control-looking token: '%s' was not control-type; this is probably a bug in the model. its type will be overridden\n",
                         __func__, t->first.c_str());
                     vocab.id_to_token[t->second].attr = LLAMA_TOKEN_ATTR_CONTROL;
                 }
@@ -6706,7 +6724,9 @@ static void llm_load_vocab(
                ) {
                 vocab.special_eog_ids.insert(t.second);
                 if ((vocab.id_to_token[t.second].attr & LLAMA_TOKEN_ATTR_CONTROL) == 0) {
-                    LLAMA_LOG_WARN("%s: control-looking token: '%s' was not control-type; this is probably a bug in the model. its type will be overridden\n",
+                    // LLAMA_LOG_WARN("%s: control-looking token: '%s' was not control-type; this is probably a bug in the model. its type will be overridden\n",
+                    //         __func__, t.first.c_str());
+                    LLAMA_LOG_WARN_TRACE(trace, "%s: control-looking token: '%s' was not control-type; this is probably a bug in the model. its type will be overridden\n",
                             __func__, t.first.c_str());
                     vocab.id_to_token[t.second].attr = LLAMA_TOKEN_ATTR_CONTROL;
                 }
@@ -6715,17 +6735,20 @@ static void llm_load_vocab(
 
         if (vocab.special_eos_id != -1 && vocab.special_eog_ids.count(vocab.special_eos_id) == 0) {
             vocab.special_eog_ids.insert(vocab.special_eos_id);
-            LLAMA_LOG_WARN("%s: special_eos_id is not in special_eog_ids - the tokenizer config may be incorrect\n", __func__);
+            // LLAMA_LOG_WARN("%s: special_eos_id is not in special_eog_ids - the tokenizer config may be incorrect\n", __func__);
+            LLAMA_LOG_WARN_TRACE(trace, "%s: special_eos_id is not in special_eog_ids - the tokenizer config may be incorrect\n", __func__);
         }
 
         if (vocab.special_eot_id != -1 && vocab.special_eog_ids.count(vocab.special_eot_id) == 0) {
             vocab.special_eog_ids.insert(vocab.special_eot_id);
-            LLAMA_LOG_WARN("%s: special_eot_id is not in special_eog_ids - the tokenizer config may be incorrect\n", __func__);
+            // LLAMA_LOG_WARN("%s: special_eot_id is not in special_eog_ids - the tokenizer config may be incorrect\n", __func__);
+            LLAMA_LOG_WARN_TRACE(trace, "%s: special_eot_id is not in special_eog_ids - the tokenizer config may be incorrect\n", __func__);
         }
 
         if (vocab.special_eom_id != -1 && vocab.special_eog_ids.count(vocab.special_eom_id) == 0) {
             vocab.special_eog_ids.insert(vocab.special_eom_id);
-            LLAMA_LOG_WARN("%s: special_eom_id is not in special_eog_ids - the tokenizer config may be incorrect\n", __func__);
+            // LLAMA_LOG_WARN("%s: special_eom_id is not in special_eog_ids - the tokenizer config may be incorrect\n", __func__);
+            LLAMA_LOG_WARN_TRACE(trace, "%s: special_eom_id is not in special_eog_ids - the tokenizer config may be incorrect\n", __func__);
         }
     }
 
@@ -19073,6 +19096,7 @@ struct llama_model_params llama_model_default_params() {
         /*.use_mmap                    =*/ true,
         /*.use_mlock                   =*/ false,
         /*.check_tensors               =*/ false,
+        /*.trace                       =*/ false,
     };
 
 #ifdef GGML_USE_METAL
@@ -19139,6 +19163,7 @@ struct llama_model_quantize_params llama_model_quantize_default_params() {
         /*.keep_split                  =*/ false,
         /*.imatrix                     =*/ nullptr,
         /*.kv_overrides                =*/ nullptr,
+        /*.trace                       =*/ false,
     };
 
     return result;

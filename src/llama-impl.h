@@ -32,7 +32,8 @@ void llama_log_callback_default(ggml_log_level level, const char * text, void * 
 #define LLAMA_LOG_CONT(...)  llama_log_internal(GGML_LOG_LEVEL_CONT , __VA_ARGS__)
 #define LLAMA_LOG_INFO_TRACE(trace, ...) \
     if ((trace) > 0) LLAMA_LOG_INFO(__VA_ARGS__)
-
+#define LLAMA_LOG_WARN_TRACE(trace, ...) \
+    if ((trace) > 0) LLAMA_LOG_WARN(__VA_ARGS__)
 
 //
 // helpers

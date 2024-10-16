@@ -707,8 +707,8 @@ int main(int argc, char ** argv) {
 
     // Buffer system to check for "### Instruction" and subsequent "###"
     std::string output_buffer = "";
-    std::queue<std::string> unlogged_output;
-    size_t buffer_threshold = 32;
+    // std::queue<std::string> unlogged_output;
+    // size_t buffer_threshold = 32;
     int early_stop_pos = -1;
 
     while ((n_remain != 0 && !is_antiprompt) || params.interactive) {
@@ -886,17 +886,13 @@ int main(int argc, char ** argv) {
             const std::string token_str = llama_token_to_piece(ctx, id, params.special);
 
             output_buffer += token_str;
-            if (output_buffer.length() <= command_prompt.length()) {
-                // no output
-            } else {
-                unlogged_output.push(token_str);
-                if (unlogged_output.size() > buffer_threshold) {
-                    if (input_echo && display && params.llmc_show_explanations) {
-                        LOG("%s", unlogged_output.front().c_str());
-                        unlogged_output.pop();
-                    }
-                }
-            }
+            // if (output_buffer.length() <= command_prompt.length()) {
+            //     // no output
+            // } else {
+            //     if (input_echo && display && params.llmc_show_explanations) {
+            //         LOG("%s", token_str);
+            //     }
+            // }
 
             
 
@@ -913,6 +909,7 @@ int main(int argc, char ** argv) {
 
             if (output_buffer.length() >= command_prompt.length()) {
                 // LOG_DBG("output_buffer: %s\n", output_buffer.c_str());
+                // output_buffer.substr(command_prompt.length())
                 early_stop_pos = check_early_stop(output_buffer.substr(command_prompt.length()));
                 if (early_stop_pos != -1) {
                     break;
@@ -986,7 +983,7 @@ int main(int argc, char ** argv) {
                         chat_add_and_format(model, chat_msgs, "assistant", assistant_ss.str());
                     }
                     is_interacting = true;
-                    LOG("\n");
+                    // LOG("\n");
                 }
             }
 
@@ -1111,23 +1108,24 @@ int main(int argc, char ** argv) {
         }  
     }
 
+
     output_buffer = output_buffer.substr(command_prompt.length());
     if (early_stop_pos != -1) {
-        while (unlogged_output.size() >= output_buffer.length() - early_stop_pos - 1) {
-            if (input_echo && display && params.llmc_show_explanations) {
-                LOG("%s", unlogged_output.front().c_str());
-                unlogged_output.pop();
-            }
-        }
         output_buffer = output_buffer.substr(0, early_stop_pos);
-    } else {
-        while (!unlogged_output.empty()) {
-            if (input_echo && display && params.llmc_show_explanations) {
-                LOG("%s", unlogged_output.front().c_str());
-                unlogged_output.pop();
-            }
-        }
+        // output_buffer = output_buffer.substr(command_prompt.length());
+
+        // while (!unlogged_output.empty()) {
+        //     if (input_echo && display && params.llmc_show_explanations) {
+        //         LOG("%s", unlogged_output.front().c_str());
+        //         unlogged_output.pop();
+        //     }
+        // }
     }
+    output_buffer = trim(output_buffer);
+    if (params.llmc_show_explanations) {
+        printf("%s", output_buffer.c_str());
+    }
+    // printf("output_buffer: %s\n", output_buffer.c_str());
     
     
     if (!path_session.empty() && params.prompt_cache_all && !params.prompt_cache_ro) {
