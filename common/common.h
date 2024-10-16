@@ -254,8 +254,8 @@ struct gpt_params {
     bool use_mmap          = true;  // use mmap for faster loads
     bool use_mlock         = false; // use mlock to keep model in memory
     bool verbose_prompt    = false; // print prompt tokens before generation
-    // bool display_prompt    = true;  // print prompt before generation
-    bool display_prompt    = false;  // print prompt before generation
+    bool display_prompt    = true;  // print prompt before generation
+    // bool display_prompt    = false;  // print prompt before generation
     bool dump_kv_cache     = false; // dump the KV cache contents for debugging purposes
     bool no_kv_offload     = false; // disable KV offloading
     bool warmup            = true;  // warmup run

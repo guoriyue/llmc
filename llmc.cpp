@@ -107,14 +107,6 @@ Explanation:
 - `rm -rf oldies_goldies`: Recursively and forcefully deletes the 'oldies_goldies' directory and its contents.
 - **Warning**: This command permanently deletes files and directories without confirmation.
 
-### Instruction: show all Docker containers
-Command: 
-```shell
-docker ps
-```
-Explanation: 
-- Lists all running Docker containers.
-
 ### Instruction: mistakenly pushed large files to GitHub, please remove them from the git history
 Command: 
 ```shell
@@ -132,8 +124,7 @@ Command:
 conda create -n "myenv" python=3.11
 ```
 Explanation:
-- `conda create -n "myenv" python=3.11`: Creates a new Conda environment named 'myenv' with Python version 3.11.
-
+- `conda create -n "myenv" python=3.11`: Creates a new Conda environment named 'myenv' with Python version 3.11
 )";
 
 static void print_usage(int argc, char ** argv) {
@@ -349,7 +340,7 @@ int main(int argc, char ** argv) {
     // params.prompt = "give me a shell command to do this: " + params.prompt;
     // params.system_prompt = shell_prompt;
 
-    printf("%s", params.prompt.c_str());
+    // printf("%s", params.prompt.c_str());
     params.prompt = command_prompt + "\n### Instruction: " + params.prompt;
     // params.system_prompt = command_prompt;
    
@@ -895,61 +886,19 @@ int main(int argc, char ** argv) {
             const std::string token_str = llama_token_to_piece(ctx, id, params.special);
 
             output_buffer += token_str;
-            unlogged_output.push(token_str);
-
-            if (unlogged_output.size() > buffer_threshold) {
-                if (input_echo && display && params.llmc_show_explanations) {
-                    LOG("%s", unlogged_output.front().c_str());
+            if (output_buffer.length() <= command_prompt.length()) {
+                // no output
+            } else {
+                unlogged_output.push(token_str);
+                if (unlogged_output.size() > buffer_threshold) {
+                    if (input_echo && display && params.llmc_show_explanations) {
+                        LOG("%s", unlogged_output.front().c_str());
+                        unlogged_output.pop();
+                    }
                 }
-                unlogged_output.pop();
             }
 
             
-
-            // if (token_str.find("#") == std::string::npos && unlogged_text.find("#") == std::string::npos) {
-            //     LOG("%s", unlogged_text.c_str());
-            //     unlogged_text = "";
-            //     log_idx_tail += token_str.length();
-            //     log_idx_head = log_idx_tail;
-            //     LOG("%s", token_str.c_str());
-            // } else {
-            //     // LOG(" ");
-            //     log_idx_tail += token_str.length();
-            //     unlogged_text = output_buffer.substr(log_idx_head, log_idx_tail - log_idx_head);
-            //     if (!instruction_seen) {
-            //         if (unlogged_text.find("### Ins") != std::string::npos || unlogged_text.find("### Exa") != std::string::npos) {
-            //             // Instruction or Example
-            //             instruction_seen = true;
-            //             LOG("%s", unlogged_text.c_str());
-            //             log_idx_head = log_idx_tail;
-            //             unlogged_text = "";
-            //         } else {
-            //             // buffering
-            //             if (log_idx_tail - log_idx_head > buffer_threshold) {
-            //                 LOG("%s", unlogged_text.c_str());
-            //                 log_idx_head = log_idx_tail;
-            //                 unlogged_text = "";
-            //             } else {
-            //                 log_idx_tail += token_str.length();
-            //             }
-            //         }
-            //     } else{
-            //         if (unlogged_text.find("###") != std::string::npos) {
-            //             LOG("%s", unlogged_text.c_str());
-            //             size_t pos = output_buffer.find("###");
-            //             std::string last_unlogged_text = output_buffer.substr(0, pos);
-            //             log_idx_head = log_idx_head + last_unlogged_text.length();
-            //             log_idx_tail = log_idx_head;
-            //             unlogged_text = "";
-            //             // Early stop condition
-            //             break;
-            //         } else {
-            //             // buffering
-            //             log_idx_tail += token_str.length();
-            //         }
-            //     }
-            // }
-
 
             // Record Displayed Tokens To Log
             // Note: Generated tokens are created one by one hence this check
@@ -962,9 +911,12 @@ int main(int argc, char ** argv) {
                 output_ss << token_str;
             }
 
-            early_stop_pos = check_early_stop(output_buffer);
-            if (early_stop_pos != -1) {
-                break;
+            if (output_buffer.length() >= command_prompt.length()) {
+                // LOG_DBG("output_buffer: %s\n", output_buffer.c_str());
+                early_stop_pos = check_early_stop(output_buffer.substr(command_prompt.length()));
+                if (early_stop_pos != -1) {
+                    break;
+                }
             }
         }
 
@@ -1159,21 +1111,21 @@ int main(int argc, char ** argv) {
         }  
     }
 
-    
+    output_buffer = output_buffer.substr(command_prompt.length());
     if (early_stop_pos != -1) {
         while (unlogged_output.size() >= output_buffer.length() - early_stop_pos - 1) {
             if (input_echo && display && params.llmc_show_explanations) {
                 LOG("%s", unlogged_output.front().c_str());
+                unlogged_output.pop();
             }
-            unlogged_output.pop();
         }
         output_buffer = output_buffer.substr(0, early_stop_pos);
     } else {
         while (!unlogged_output.empty()) {
             if (input_echo && display && params.llmc_show_explanations) {
                 LOG("%s", unlogged_output.front().c_str());
+                unlogged_output.pop();
             }
-            unlogged_output.pop();
         }
     }
     
