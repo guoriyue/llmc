@@ -33,7 +33,7 @@ public:
     // std::string editable_input();
     void show_args();
 
-    void save_args(const gpt_params & params);
+    // void save_args(const gpt_params & params);
 };
 
 #endif // MODEL_MANAGER_H
