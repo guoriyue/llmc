@@ -496,7 +496,8 @@ std::string edit_prefilled_input_multiline(const std::string &prefilled_text) {
         }
         std::cout.flush();
     }
-
+    refresh_multiline(lines, height, max_visible_lines - 1, lines[max_visible_lines - 1].length(), max_visible_lines);
+    printf("\n");
     // Restore the original terminal settings
     disable_raw_mode(orig_termios);
 
