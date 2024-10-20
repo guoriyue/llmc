@@ -181,6 +181,14 @@ size_t get_nth_delimiters(const std::string& input, const std::string& delimiter
 }
 
 
+std::string to_lower_case(const std::string& input) {
+    std::string result = input;  // Create a copy of the input string
+    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
+        return std::tolower(c);
+    });
+    return result;
+}
+
 size_t check_early_stop(const std::string& output_buffer) {
     // if 2 Instruction or Example blocks are found, stop early
     if (get_num_delimiters(output_buffer, "###") >= 3) {

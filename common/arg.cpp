@@ -15,9 +15,39 @@
 
 #include "json-schema-to-grammar.h"
 
-
-
 using json = nlohmann::ordered_json;
+
+#define PRINT_LENGTH_ARGS 80
+
+void print_centered_message_args(const char* message, int total_length) {
+    int message_length = strlen(message);
+    
+    // Ensure the message is not longer than the total length
+    if (message_length >= total_length) {
+        printf("%s\n", message); // Print the message directly if it's too long
+        return;
+    }
+
+    // Calculate how many '=' signs will go on each side
+    int padding = (total_length - message_length - 2); // 2 accounts for the spaces around the message
+    int half_padding = padding / 2;
+    
+    // Print the left side '=' signs
+    for (int i = 0; i < half_padding; i++) {
+        printf("-");
+    }
+
+    // Print the message with spaces
+    printf(" %s ", message);
+
+    // Print the right side '=' signs (adjusting for odd number of total_length)
+    for (int i = 0; i < (padding - half_padding); i++) {
+        printf("-");
+    }
+
+    // End the line with a newline character
+    printf("\n");
+}
 
 llama_arg & llama_arg::set_examples(std::initializer_list<enum llama_example> examples) {
     this->examples = std::move(examples);
@@ -218,17 +248,17 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
         }
     };
     // check if argv[1] is an arg or a value
-    int argc_start_idx = (argc > 1 && argv[1][0] != '-') ? 2 : 1;
-    // allow user to pass prompt as first argument
-    if (argc_start_idx == 2) {
-        ctx_arg.params.prompt = argv[1];
-    }
+    
+    // int argc_start_idx = (argc > 1 && argv[1][0] != '-') ? 2 : 1;
+    // // allow user to pass prompt as first argument
+    // if (argc_start_idx == 2) {
+    //     ctx_arg.params.prompt = argv[1];
+    // }
     params.llmc_args_str = "";
-    for (int i = argc_start_idx; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         const std::string arg_prefix = "--";
 
         std::string arg = argv[i];
-        params.llmc_args_str += arg + " ";
         if (arg.compare(0, arg_prefix.size(), arg_prefix) == 0) {
             std::replace(arg.begin(), arg.end(), '_', '-');
         }
@@ -269,6 +299,10 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
                 "error while handling argument \"%s\": %s\n\n"
                 "usage:\n%s\n\nto show complete usage, run with -h",
                 arg.c_str(), e.what(), arg_to_options[arg]->to_string().c_str()));
+        }
+
+        if (arg != "--save-args") {
+            params.llmc_args_str += arg + " ";
         }
     }
 
@@ -327,15 +361,19 @@ static void gpt_params_print_usage(gpt_params_context & ctx_arg) {
             common_options.push_back(&opt);
         }
     }
-    printf("----- llmc params -----\n\n");
+    // printf("----- llmc params -----\n\n");
+    print_centered_message_args("llmc params", PRINT_LENGTH_ARGS);
     print_options(llmc_options);
     if (ctx_arg.params.model_usage) {
-        printf("----- common params -----\n\n");
+        // printf("----- common params -----\n\n");
+        print_centered_message_args("common params", PRINT_LENGTH_ARGS);
         print_options(common_options);
-        printf("\n\n----- sampling params -----\n\n");
+        // printf("\n\n----- sampling params -----\n\n");
+        print_centered_message_args("sampling params", PRINT_LENGTH_ARGS);
         print_options(sparam_options);
         // TODO: maybe convert enum llama_example to string
-        printf("\n\n----- example-specific params -----\n\n");
+        // printf("\n\n----- example-specific params -----\n\n");
+        print_centered_message_args("example-specific params", PRINT_LENGTH_ARGS);
         print_options(specific_options);
     } else {
         // printf("If you'd like to explore more advanced model options, pass --model-help or --model-usage for additional usage instructions.\n\n");
@@ -2053,6 +2091,14 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     //     }
     // ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
+        {"--model-help", "--model-usage"},
+        "Print detailed model usage",
+        [](gpt_params & params) {
+            params.model_usage = true;
+            params.usage = true;
+        }
+    ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
         {"--show-args"},
         "Show arguments you saved",
         [](gpt_params & params) {
@@ -2067,20 +2113,30 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
         }
     ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
-        {"--no-explanations"},
-        "Disable explanations",
+        {"--no-explanation"},
+        "Disable explanation",
         [](gpt_params & params) {
-            // params.llmc_show_explanations = false;
-            params.llmc_show_explanations = false;
+            // params.llmc_show_explanation = false;
+            params.llmc_show_explanation = false;
         }
     ).set_examples({LLMC_MAIN}));
-    // add_opt(llama_arg(
-    //     {"--show-explanations"},
-    //     "Enable explanations",
-    //     [](gpt_params & params) {
-    //         params.llmc_show_explanations = true;
-    //     }
-    // ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--no-edit"},
+        "Disable editing the chosen command",
+        [](gpt_params & params) {
+            // params.llmc_show_explanation = false;
+            params.llmc_no_edit = true;
+        }
+    ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
+        {"--mode"}, "{loop,exit}",
+        R"(Select the mode of operation.
+        - loop: Continues to choose and execute commands indefinitely.
+        - exit: Executes a single command and then stops the program.)",
+        [](gpt_params & params, const std::string & value) {
+            params.llmc_mode = value;
+        }
+    ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
         {"--trace"},
         "Enable tracing",
@@ -2088,14 +2144,7 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
             params.trace = true;
         }
     ).set_examples({LLMC_MAIN}));
-    add_opt(llama_arg(
-        {"--model-help", "--model-usage"},
-        "Print detailed model usage",
-        [](gpt_params & params) {
-            params.model_usage = true;
-            params.usage = true;
-        }
-    ).set_examples({LLMC_MAIN}));;
+    
     // add_opt(llama_arg(
     //     {"--default-model"}, "FNAME",
     //     "Set default model for llmc",

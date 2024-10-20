@@ -5,5 +5,5 @@
 
 // Declare the function prototype
 std::string exec_command(const std::string& cmd);
-
+void choose_edit_exec(std::vector<std::string>& output_lines, bool no_edit);
 #endif // SHELL_EXECUTOR_H

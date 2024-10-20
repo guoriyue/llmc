@@ -18,4 +18,7 @@ size_t get_nth_delimiters(const std::string& input, const std::string& delimiter
 size_t get_num_delimiters(const std::string& input, const std::string& delimiter);
 
 std::vector<std::string> split_str(const std::string& str, char delimiter);
+
+
+std::string to_lower_case(const std::string& input);
 #endif // EXTRACT_BASH_BLOCKS_H

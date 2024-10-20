@@ -44,5 +44,4 @@ error: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory
 TODO
 ----
 
-- CI/CD pipeline
 - multiline

@@ -346,13 +346,15 @@ struct gpt_params {
     bool batched_bench_output_jsonl = false;
     
     // llmc args
-    bool llmc_show_explanations = true;
+    bool llmc_show_explanation = true;
     bool llmc_show_args = false;
     bool llmc_save_args         = false; // save arguments to a file
     std::string llmc_args_str   = "";    // arguments to save
     bool usage             = false; // print usage
     bool trace             = false; // enable trace mode
     bool llmc_setup        = false; // setup model
+    std::string llmc_mode = "exit";    // mode
+    bool llmc_no_edit      = false; // do not edit the model
 };
 
 // call once at the start of a program if it uses libcommon

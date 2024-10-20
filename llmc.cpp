@@ -52,7 +52,6 @@ static std::vector<llama_token> * g_output_tokens;
 static bool is_interacting  = false;
 static bool need_insert_eot = false;
 
-
 std::string command_prompt = R"(
 You are a command-line tool helper designed to assist developers in generating accurate and executable shell commands. Given a user request or problem description, generate the appropriate command to solve the issue, and explain each part of the command briefly. Always ensure the solution is correct, efficient, and follows best practices. Do not repeat yourself and provide clear and concise explanations.
 
@@ -229,14 +228,59 @@ static std::string chat_add_and_format(struct llama_model * model, std::vector<l
     // LOG_DBG("formatted: '%s'\n", formatted.c_str());
     return formatted;
 }
+void insert_at_index(char**& argv, int& argc, const char* new_element, int index) {
+    // Create a new array with one extra space
+    char** new_argv = new char*[argc + 1];
+
+    // Deep copy elements up to the insertion point
+    for (int i = 0; i < index; ++i) {
+        new_argv[i] = new char[std::strlen(argv[i]) + 1];  // Allocate memory for each element
+        std::strcpy(new_argv[i], argv[i]);  // Copy each element
+    }
+
+    // Insert the new element (allocate memory and copy the string)
+    new_argv[index] = new char[std::strlen(new_element) + 1];
+    std::strcpy(new_argv[index], new_element);
+
+    // Deep copy the rest of the original array after the insertion point
+    for (int i = index; i < argc; ++i) {
+        new_argv[i + 1] = new char[std::strlen(argv[i]) + 1];  // Allocate memory for each element
+        std::strcpy(new_argv[i + 1], argv[i]);  // Copy each element
+    }
+
+    // Don't deallocate the original argv (as it might be system-provided)
+    // Simply replace argv with new_argv
+
+    // Update the original pointer and size
+    argv = new_argv;
+    ++argc;  // Increase the argument count
+}
 
 int main(int argc, char ** argv) {
 
     gpt_params params;
     g_params = &params;
+    model_manager mm = model_manager();
+    std::string saved_llmc_args_str = mm.get_args("llmc_args_str");
+    std::vector<std::string> saved_llmc_args = split_str(saved_llmc_args_str, ' ');
+
+    if (argc == 1) {
+        // no input arguments
+    } else {
+        // // special case, only 1 argument, and it's a prompt
+        // if (argc == 2){
+        //     insert_at_index(argv, argc, (char*)"-p", 1);
+        // }
+
+        for (auto it = saved_llmc_args.rbegin(); it != saved_llmc_args.rend(); ++it) {
+            insert_at_index(argv, argc, (char*)it->c_str(), 1);
+        }
+    }
+    
     if (!gpt_params_parse(argc, argv, params, LLAMA_EXAMPLE_MAIN, print_usage)) {
         return 1;
     }
+
     gpt_init();
 
     auto & sparams = params.sparams;
@@ -249,7 +293,6 @@ int main(int argc, char ** argv) {
         // LOG_ERR("************\n");
         // LOG_ERR("%s: please use the 'perplexity' tool for perplexity calculations\n", __func__);
         // LOG_ERR("************\n\n");
-
         return 0;
     }
 
@@ -275,7 +318,7 @@ int main(int argc, char ** argv) {
     }
     // // LOG_INF("%s: llama backend init\n", __func__);
 
-    model_manager mm = model_manager();
+    
     if (params.model == DEFAULT_MODEL_PATH) {
         // users do not explicitly set a model
         // std::string model_path = mm.read_model_path();
@@ -283,7 +326,7 @@ int main(int argc, char ** argv) {
         if (params.llmc_setup) {
             print_centered_message("Setting up llmc model", PRINT_LENGTH);
             params.model = mm.set_model();
-            exit(0);
+            return 0;
         }
         else if (model_path.empty() || (!file_exists(model_path) || file_is_empty(model_path))) {
             // force to reset the model
@@ -297,6 +340,7 @@ int main(int argc, char ** argv) {
     if (params.llmc_save_args) {
         mm.save_args("llmc_args_str", params.llmc_args_str);
     }
+
     if (params.llmc_show_args) {
         mm.show_args();
         return 0;
@@ -312,34 +356,16 @@ int main(int argc, char ** argv) {
         return 0;
     }
 
-    print_centered_message("Starting llmc", PRINT_LENGTH);
+    params.llmc_mode = to_lower_case(params.llmc_mode);
+    if (params.llmc_mode != "loop" && params.llmc_mode != "exit") {
+        print_error("Invalid mode. Please choose either 'loop' or 'exit'");
+        return 0;
+    }
+
+    // print_centered_message("Starting llmc", PRINT_LENGTH);
+
 
     
-    // std::string shell_prompt = R"(You are a command line tool helper designed to assist developers in generating accurate and executable shell commands. Given a user request or problem description, generate the appropriate command to solve the issue, and explain each part of the command briefly. Always ensure the solution is correct, efficient, and follows best practices.
-    
-    //                             ##Instruction: show current directory
-    //                             pwd
-    //                             ###Instruction: list all files in the current directory
-    //                             ls
-    //                             ###Instruction: show ip address
-    //                             ip addr show
-    //                             ###Instruction: update my system
-    //                             sudo apt update && sudo apt upgrade -y
-    //                             ###Instruction: create a folder here named my_new_music and put a new text file named awesome_playlist.md in it
-    //                             mkdir my_new_music && touch ./my_new_music/awesome_playlist.md
-    //                             ###Instruction: delete the folder oldies_goldies
-    //                             rm -rf oldies_goldies
-    //                             ###Instruction: show all docker containers
-    //                             docker ps
-    //                             ###Instruction: mistakenly pushed large files to GitHub, please remove them from the git history
-    //                             git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch <file/dir>' HEAD
-    //                             ###Instruction: create a Python 3.11 conda environment
-    //                             conda create -n \"myenv\" python=3.11
-    //                             ###Instruction: 
-    //                             )";
-
-    // params.prompt = "give me a shell command to do this: " + params.prompt;
-    // params.system_prompt = shell_prompt;
 
     params.prompt = command_prompt + "\n### Instruction: " + params.prompt;
    
@@ -888,7 +914,7 @@ int main(int argc, char ** argv) {
             // if (output_buffer.length() <= command_prompt.length()) {
             //     // no output
             // } else {
-            //     if (input_echo && display && params.llmc_show_explanations) {
+            //     if (input_echo && display && params.llmc_show_explanation) {
             //         LOG("%s", token_str);
             //     }
             // }
@@ -1114,14 +1140,14 @@ int main(int argc, char ** argv) {
         // output_buffer = output_buffer.substr(command_prompt.length());
 
         // while (!unlogged_output.empty()) {
-        //     if (input_echo && display && params.llmc_show_explanations) {
+        //     if (input_echo && display && params.llmc_show_explanation) {
         //         LOG("%s", unlogged_output.front().c_str());
         //         unlogged_output.pop();
         //     }
         // }
     }
     output_buffer = trim(output_buffer);
-    if (params.llmc_show_explanations) {
+    if (params.llmc_show_explanation) {
         printf("%s", output_buffer.c_str());
     }
     // printf("output_buffer: %s\n", output_buffer.c_str());
@@ -1135,21 +1161,16 @@ int main(int argc, char ** argv) {
     // std::string output = output_ss.str();
 
     // std::vector<std::string> output_lines = extract_bash_blocks(output);
-    printf("\n\n");
+    // printf("\n\n");
     std::vector<std::string> output_lines = extract_suggestions(output_buffer);
     // printf("============ Choose & Execute ============\n");
-    while (!output_lines.empty()) {
-        print_centered_message("Choose a Command", PRINT_LENGTH);
-        size_t chosen_cmd = choose_from_vector(output_lines);
-        std::string edited_cmd =  edit_prefilled_input(output_lines[chosen_cmd]);
-        exec_command(edited_cmd);
-        // output_lines.erase(output_lines.begin() + chosen_cmd);
+    if (params.llmc_mode == "loop") {
+        while (!output_lines.empty()) {
+            choose_edit_exec(output_lines, params.llmc_no_edit);
+        }
+    } else if (params.llmc_mode == "exit") {
+        choose_edit_exec(output_lines, params.llmc_no_edit);
     }
-
-    // render_markdown();
-    // LOG("\n\n");
-    // gpt_perf_print(ctx, smpl);
-    // write_logfile(ctx, params, model, input_tokens, output_ss.str(), output_tokens);
 
     gpt_sampler_free(smpl);
 
