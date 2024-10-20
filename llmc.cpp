@@ -262,7 +262,7 @@ int main(int argc, char ** argv) {
     g_params = &params;
     model_manager mm = model_manager();
     std::string saved_llmc_args_str = mm.get_args("llmc_args_str");
-    std::vector<std::string> saved_llmc_args = split_str(saved_llmc_args_str, ' ');
+    std::vector<std::string> saved_llmc_args = split_str(trim(saved_llmc_args_str), ' ');
 
     if (argc == 1) {
         // no input arguments
@@ -338,6 +338,7 @@ int main(int argc, char ** argv) {
     }
 
     if (params.llmc_save_args) {
+        printf("Saving args %s\n", params.llmc_args_str.c_str());
         mm.save_args("llmc_args_str", params.llmc_args_str);
     }
 

@@ -265,6 +265,9 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
         if (arg_to_options.find(arg) == arg_to_options.end()) {
             throw std::invalid_argument(format("error: invalid argument: %s", arg.c_str()));
         }
+        if (arg != "--save-args") {
+            params.llmc_args_str += arg + " ";
+        }
         auto opt = *arg_to_options[arg];
         if (opt.has_value_from_env()) {
             fprintf(stderr, "warn: %s environment variable is set, but will be overwritten by command line argument %s\n", opt.env, arg.c_str());
@@ -299,10 +302,6 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
                 "error while handling argument \"%s\": %s\n\n"
                 "usage:\n%s\n\nto show complete usage, run with -h",
                 arg.c_str(), e.what(), arg_to_options[arg]->to_string().c_str()));
-        }
-
-        if (arg != "--save-args") {
-            params.llmc_args_str += arg + " ";
         }
     }
 
