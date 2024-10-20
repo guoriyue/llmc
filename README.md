@@ -19,14 +19,18 @@ To use llmc, provide a prompt describing the shell command:
 
 Or, you can run `./llmc` to see available options:
 
-    ----- llmc params -----
-
-    -h,    --help, --usage                  Print llmc usage
-    --setup                                 Set up your llmc: choose or customize the model
-    --show-config                           Show llmc configuration
-    --no-explanations                       Disable explanations
-    --trace                                 Enable tracing
-    --model-help, --model-usage             Print detailed model usage
+--------------------------------- llmc params ----------------------------------
+-h,    --help, --usage                  Print llmc usage
+--setup                                 Set up your llmc model: choose or customize
+--show-args                             Show arguments you saved
+--save-args                             Save arguments for frequent future use
+--no-explanation                        Disable command explanation
+--no-edit                               Disable editing the chosen command
+--mode {loop,exit}                      Select the mode of operation.
+                                                - loop: Continues to choose and execute commands indefinitely.
+                                                - exit: Executes a single command and then stops the program.
+--model-help, --model-usage             Print llmc default model arguments
+--trace                                 Enable tracing for the execution of the default model
 
 Supported Models
 ----------------
@@ -40,8 +44,3 @@ Touble Shoting
 
 ggml_metal_graph_compute: command buffer 1 failed with status 5
 error: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory)
-
-TODO
-----
-
-- multiline

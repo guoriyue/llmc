@@ -2091,14 +2091,6 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     //     }
     // ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
-        {"--model-help", "--model-usage"},
-        "Print detailed model usage",
-        [](gpt_params & params) {
-            params.model_usage = true;
-            params.usage = true;
-        }
-    ).set_examples({LLMC_MAIN}));
-    add_opt(llama_arg(
         {"--show-args"},
         "Show arguments you saved",
         [](gpt_params & params) {
@@ -2114,7 +2106,7 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
         {"--no-explanation"},
-        "Disable explanation",
+        "Disable command explanation",
         [](gpt_params & params) {
             // params.llmc_show_explanation = false;
             params.llmc_show_explanation = false;
@@ -2138,8 +2130,16 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
         }
     ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
+        {"--model-help", "--model-usage"},
+        "Print llmc default model arguments",
+        [](gpt_params & params) {
+            params.model_usage = true;
+            params.usage = true;
+        }
+    ).set_examples({LLMC_MAIN}));
+    add_opt(llama_arg(
         {"--trace"},
-        "Enable tracing",
+        "Enable tracing for the execution of the default model",
         [](gpt_params & params) {
             params.trace = true;
         }
