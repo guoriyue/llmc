@@ -45,6 +45,8 @@ std::string edit_prefilled_input_multiline(const std::string &prefilled_text);
 std::string trim(const std::string &str);
 
 size_t choose_from_vector(const std::vector<std::string> &to_choose);
+// size_t choose_from_vector(const std::vector<std::string> &to_choose, std::string bottom_message);
+std::pair<size_t, int> choose_from_vector_with_eq(const std::vector<std::string> &to_choose);
 
 void print_vector(const std::vector<std::string>& to_choose, std::size_t current_choice, bool first_call_print);
 

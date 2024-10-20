@@ -2116,14 +2116,14 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
             params.llmc_show_explanation = false;
         }
     ).set_examples({LLMC_MAIN}));
-    add_opt(llama_arg(
-        {"--no-edit"},
-        "Disable editing the chosen command",
-        [](gpt_params & params) {
-            // params.llmc_show_explanation = false;
-            params.llmc_no_edit = true;
-        }
-    ).set_examples({LLMC_MAIN}));
+    // add_opt(llama_arg(
+    //     {"--no-edit"},
+    //     "Disable editing the chosen command",
+    //     [](gpt_params & params) {
+    //         // params.llmc_show_explanation = false;
+    //         params.llmc_no_edit = true;
+    //     }
+    // ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
         {"--mode"}, "{loop,exit}",
         R"(Select the mode of operation.

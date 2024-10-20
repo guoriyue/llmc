@@ -257,7 +257,6 @@ void insert_at_index(char**& argv, int& argc, const char* new_element, int index
 }
 
 int main(int argc, char ** argv) {
-
     gpt_params params;
     g_params = &params;
     model_manager mm = model_manager();
@@ -1165,12 +1164,14 @@ int main(int argc, char ** argv) {
     printf("\n");
     std::vector<std::string> output_lines = extract_suggestions(output_buffer);
     // printf("============ Choose & Execute ============\n");
-    if (params.llmc_mode == "loop") {
-        while (!output_lines.empty()) {
-            choose_edit_exec(output_lines, params.llmc_no_edit);
+    if (output_lines.size() != 0) {
+        if (params.llmc_mode == "loop") {
+            while (!output_lines.empty()) {
+                choose_edit_exec(output_lines);
+            }
+        } else if (params.llmc_mode == "exit") {
+            choose_edit_exec(output_lines);
         }
-    } else if (params.llmc_mode == "exit") {
-        choose_edit_exec(output_lines, params.llmc_no_edit);
     }
 
     gpt_sampler_free(smpl);

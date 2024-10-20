@@ -13,7 +13,7 @@
 
 #include <fstream>
 #include <string>
-
+#include <sys/ioctl.h>  // For ioctl()
 #include <sys/stat.h>
 #include <iostream>
 #include <ncurses.h>
@@ -217,99 +217,230 @@ std::vector<std::string> split_into_lines(const std::string& input) {
 //     std::cout << "\033[" << (pos_x + 1) << "G";  // Move cursor to the correct column
 // }
 
-void refresh_multiline(const std::vector<std::string>& lines, size_t pos_y, size_t pos_x) {
-    // First, move to the start of the output region
-    std::cout << "\033[H";  // Move to the top-left corner of the terminal
+// void refresh_multiline(const std::vector<std::string>& lines, size_t pos_y, size_t pos_x) {
+//     // First, move to the start of the output region
+//     std::cout << "\033[H";  // Move to the top-left corner of the terminal
     
-    // Clear the entire screen to ensure no old text remains
-    std::cout << "\033[J";  // Clear from cursor to the end of the screen
-    
-    // Reprint the lines
-    for (const auto& line : lines) {
-        std::cout << line << std::endl;
-    }
-
-    // Move the cursor to the correct line and position
-    std::cout << "\033[" << (lines.size() - pos_y) << "F";  // Move cursor up to the correct line
-    std::cout << "\033[" << (pos_x + 1) << "G";  // Move cursor to the correct column
-}
-
-// void refresh_multiline(const std::vector<std::string>& lines, size_t pos_y, size_t pos_x, bool first_call, size_t initial_pos_y, size_t initial_pos_x) {
-//     if (first_call) {
-//         // Get the current cursor position for the first time
-//         std::cout << "\033[6n";  // Request cursor position (ESC [ 6 n)
-//         std::cin.ignore(2);  // Ignore the first two characters: ESC [
-//         std::cin >> initial_pos_y;
-//         std::cin.ignore(1);  // Ignore the semicolon
-//         std::cin >> initial_pos_x;
-//         first_call = false;
-//     }
-
-//     // Move to the starting line and column where the multiline output began
-//     std::cout << "\033[" << initial_pos_y << ";" << initial_pos_x << "H";  // Move to initial position
-
-//     // Clear the screen from the current position downwards
+//     // Clear the entire screen to ensure no old text remains
 //     std::cout << "\033[J";  // Clear from cursor to the end of the screen
-
+    
 //     // Reprint the lines
 //     for (const auto& line : lines) {
 //         std::cout << line << std::endl;
 //     }
 
-//     // Move the cursor to the correct line and position relative to the printed lines
+//     // Move the cursor to the correct line and position
 //     std::cout << "\033[" << (lines.size() - pos_y) << "F";  // Move cursor up to the correct line
 //     std::cout << "\033[" << (pos_x + 1) << "G";  // Move cursor to the correct column
+// }
+
+int get_terminal_height() {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    return w.ws_row;
+}
+
+// void refresh_multiline(const std::vector<std::string>& lines, size_t pos_y, size_t pos_x) {
+//     // Move cursor to the correct line to start refreshing
+//     std::cout << "\033[" << pos_y << "H";  // Move to the starting line (without resetting to the top)
+
+//     // Clear the lines that need to be refreshed
+//     for (size_t i = 0; i < lines.size(); ++i) {
+//         std::cout << "\033[K";  // Clear the line to the right of the cursor
+//         std::cout << lines[i] << std::endl;  // Reprint the line
+//     }
+
+//     // Move the cursor to the correct line and position for editing
+//     std::cout << "\033[" << (lines.size() - pos_y) << "F";  // Move cursor up to the correct line
+//     std::cout << "\033[" << (pos_x + 1) << "G";  // Move cursor to the correct column
+// }
+
+// std::string edit_prefilled_input_multiline(const std::string &prefilled_text) {
+//     std::vector<std::string> lines = split_into_lines(prefilled_text);
+//     int height = get_terminal_height();
+//     size_t pos_x = lines.back().length();  // Horizontal cursor position (start at the end of the last line)
+//     size_t pos_y = (lines.size() - 1);  // Vertical cursor position (start at the last line)
+    
+//     int ch;
+
+//     // Save the original terminal settings
+//     termios orig_termios;
+//     tcgetattr(STDIN_FILENO, &orig_termios);
+
+//     // Enable raw mode for capturing character-by-character input
+//     enable_raw_mode(orig_termios);
+
+//     // Print the prefilled text
+//     for (const auto& line : lines) {
+//         std::cout << line << std::endl;
+//     }
+//     std::cout.flush();
+
+//     refresh_multiline(lines, height - pos_y, pos_x);
+
+//     // Read input character by character
+//     while ((ch = getchar()) != '\n') {
+//         if (ch == 127 || ch == '\b') {  // Handle backspace
+//             if (pos_x > 0) {
+//                 lines[pos_y].erase(--pos_x, 1);  // Remove character at cursor
+//                 refresh_multiline(lines, pos_y, pos_x);
+//             } else if (pos_y > 0) {  // Handle backspace at the start of a line (merge with previous line)
+//                 pos_x = lines[pos_y - 1].length();
+//                 lines[pos_y - 1] += lines[pos_y];
+//                 lines.erase(lines.begin() + pos_y);
+//                 --pos_y;
+//                 refresh_multiline(lines, height - pos_y, pos_x);
+//             }
+//         } else if (ch == 27) {  // Escape character (arrow keys or Alt+B/F)
+//             int key = handle_escape_sequence();
+//             if (key == 'C' && pos_x < lines[pos_y].length()) {  // Right arrow
+//                 std::cout << "\033[C";  // Move cursor right
+//                 pos_x++;
+//             } else if (key == 'D' && pos_x > 0) {  // Left arrow
+//                 std::cout << "\033[D";  // Move cursor left
+//                 pos_x--;
+//             } else if (key == 'A' && pos_y > 0) {  // Up arrow
+//                 --pos_y;
+//                 pos_x = std::min(pos_x, lines[pos_y].length());  // Clamp cursor to the current line's length
+//                 refresh_multiline(lines, height - pos_y, pos_x);
+//             } else if (key == 'B' && pos_y < lines.size() - 1) {  // Down arrow
+//                 ++pos_y;
+//                 pos_x = std::min(pos_x, lines[pos_y].length());  // Clamp cursor to the current line's length
+//                 refresh_multiline(lines, height - pos_y, pos_x);
+//             }
+//         } else if (ch >= 32 && ch <= 126) {  // Handle printable characters
+//             lines[pos_y].insert(pos_x, 1, ch);  // Insert character at cursor position
+//             pos_x++;  // Move cursor forward
+//             refresh_multiline(lines, height - pos_y, pos_x);
+//         }
+//         std::cout.flush();
+//     }
+
+//     // Restore the original terminal settings
+//     disable_raw_mode(orig_termios);
+
+//     // Combine lines into a single string and return it
+//     std::string final_input;
+//     for (const auto& line : lines) {
+//         final_input += line + '\n';  // Combine lines with newlines
+//     }
+//     return final_input;
+// }
+
+
+// void refresh_multiline(const std::vector<std::string> &lines, int terminal_height, size_t pos_y, size_t pos_x, size_t max_visible_lines) {
+//     // Calculate the correct terminal line for pos_y
+//     int mapped_y = terminal_height - (max_visible_lines - pos_y);
+
+//     // Move cursor to the beginning of the region to refresh
+//     std::cout << "\033[" << mapped_y << ";1H";  // Move to the correct line
+
+//     // Clear the current viewable lines
+//     for (size_t i = 0; i < max_visible_lines; ++i) {
+//         std::cout << "\033[K";  // Clear the current line
+//         if (i + 1 < max_visible_lines) {
+//             std::cout << "\033[B";  // Move cursor down
+//         }
+//     }
+
+//     // Move back to the starting line to reprint the lines
+//     std::cout << "\033[" << mapped_y << ";1H";
+
+//     // Print the lines that fit in the terminal
+//     size_t start_line = (lines.size() > max_visible_lines) ? lines.size() - max_visible_lines : 0;
+//     for (size_t i = start_line; i < lines.size(); ++i) {
+//         std::cout << "\033[K" << lines[i];  // Clear the line and print it
+//         if (i + 1 < lines.size()) {
+//             std::cout << std::endl;  // Move to the next line
+//         }
+//     }
+
+//     // Move cursor to the correct position in the last line
+//     std::cout << "\033[" << mapped_y << ";" << pos_x + 1 << "H";  // Move cursor to the correct column
+//     std::cout.flush();
 // }
 
 
 
 // void refresh_multiline(const std::vector<std::string>& lines, size_t pos_y, size_t pos_x) {
-//     // Move the cursor up to the starting line
-//     // printf("pos_y: %lu, pos_x: %lu\n", pos_y, pos_x);
-    
+//     // Move cursor to the correct line to start refreshing
+//     std::cout << "\033[" << pos_y << "H";  // Move to the starting line (without resetting to the top)
+
+//     // Clear the lines that need to be refreshed
 //     for (size_t i = 0; i < lines.size(); ++i) {
-//         std::cout << "\033[F\033[K";  // Move up one line and clear the line
+//         std::cout << "\033[K";  // Clear the line to the right of the cursor
+//         std::cout << lines[i] << std::endl;  // Reprint the line
 //     }
 
-//     // // Reprint the input lines with line breaks
-//     // for (const auto& line : lines) {
-//     //     std::cout << line << std::endl;
-//     //     // refresh_line(line, pos_x);
-//     // }
+//     // Move the cursor to the correct line and position for editing
+//     std::cout << "\033[" << (lines.size() - pos_y) << "F";  // Move cursor up to the correct line
+//     std::cout << "\033[" << (pos_x + 1) << "G";  // Move cursor to the correct column
+// }
 
-//     for (size_t i = 0; i < lines.size(); ++i) {
-//         std::cout << lines[i] << std::endl;
-//         // if (i == pos_y) {
-//         //     // std::cout << "\033[7m" << lines[i] << "\033[0m" << std::endl;  // Highlight the current line
-//         //     std::cout << lines[i] << std::endl;
-//         //     // std::cout << "\033[" << (lines.size() - pos_y) << "F";
-//         //     // std::cout << "\033[" << (pos_x + 1) << "G";  // Move to the correct column
-//         // } else {
-//         //     std::cout << lines[i] << std::endl;
-//         // }
+void refresh_multiline(const std::vector<std::string> &lines, int terminal_height, size_t pos_y, size_t pos_x, size_t max_visible_lines) {
+    // Calculate the correct terminal line for pos_y
+    int mapped_y = terminal_height - (max_visible_lines - pos_y);
+
+    // Move cursor to the beginning of the region to refresh
+    std::cout << "\033[" << mapped_y << ";1H";  // Move to the correct line
+
+    // // Clear the last few lines
+    // for (size_t i = 0; i < max_visible_lines; ++i) {
+    //     std::cout << "\033[K";  // Clear the current line
+    //     std::cout << lines[i] << std::endl;  // Reprint the line
+    //     // if (i + 1 < max_visible_lines) {
+    //     //     std::cout << "\033[B";  // Move cursor down
+    //     // }
+    // }
+
+    // // Move back to the starting line to reprint the lines
+    // std::cout << "\033[" << mapped_y << ";1H";
+
+    // Print the last few lines that fit in the terminal
+    // size_t start_line = (lines.size() > max_visible_lines) ? lines.size() - max_visible_lines : 0;
+    for (size_t i = pos_y; i < lines.size(); ++i) {
+        std::cout << "\033[K" << lines[i] << std::endl;   // Clear the line and print it
+        // if (i + 1 < lines.size()) {
+        //     std::cout << std::endl;  // Move to the next line
+        // }
+    }
+
+    // Adjust pos_x to not exceed the current line's length
+    pos_x = std::min(pos_x, lines[pos_y].length());
+
+    // Move cursor to the correct position in the current line
+    std::cout << "\033[" << mapped_y << ";" << pos_x + 1 << "H";  // Move cursor to the correct column and line
+    std::cout.flush();
+}
+
+
+// void refresh_multiline(const std::vector<std::string> &lines, int terminal_height, size_t pos_y, size_t pos_x, size_t max_visible_lines) {
+//     // Calculate the correct terminal line for pos_y
+//     int mapped_y = terminal_height - (max_visible_lines - pos_y);
+
+//     // Move cursor to the correct position within the last few lines
+//     std::cout << "\033[" << mapped_y << ";1H";  // Move to the beginning of the mapped line
+
+//     // Reprint only the visible lines (last 3 lines)
+//     for (size_t i = lines.size() > max_visible_lines ? lines.size() - max_visible_lines : 0; i < lines.size(); ++i) {
+//         std::cout << "\033[K" << lines[i] << std::endl;  // Clear line and print it
 //     }
 
-//     if (pos_y < lines.size()) {
-//         std::cout << "\033[" << (lines.size() - pos_y) << "F";  // Move up to the correct line
-//     }
-//     // Clear the current line
-//     std::cout << "\033[K";
-
-//     // Move to the correct column
-//     std::cout << "\033[" << (pos_x + 1) << "G";
-
-//     // // Move the cursor to the correct line and position
-//     // if (pos_y < lines.size()) {
-//     //     std::cout << "\033[" << (lines.size() - pos_y) << "F";  // Move up to the correct line
-//     // }
-//     // std::cout << "\033[" << (pos_x + 1) << "G";  // Move to the correct column
+//     // Move cursor to the correct position within the last printed line
+//     std::cout << "\033[" << mapped_y << ";" << pos_x + 1 << "H";  // Move cursor to the correct column
 // }
 
 
 std::string edit_prefilled_input_multiline(const std::string &prefilled_text) {
     std::vector<std::string> lines = split_into_lines(prefilled_text);
+    for (int i = 0; i < lines.size(); i++) {
+        printf("\n");
+    }
+
+    int height = get_terminal_height();
+    size_t max_visible_lines = lines.size();
     size_t pos_x = lines.back().length();  // Horizontal cursor position (start at the end of the last line)
-    size_t pos_y = lines.size() - 1;  // Vertical cursor position (start at the last line)
+    size_t pos_y = max_visible_lines - 1;  // Start at the last visible line
     
     int ch;
 
@@ -320,26 +451,26 @@ std::string edit_prefilled_input_multiline(const std::string &prefilled_text) {
     // Enable raw mode for capturing character-by-character input
     enable_raw_mode(orig_termios);
 
-    // Print the prefilled text
-    for (const auto& line : lines) {
-        std::cout << line << std::endl;
-    }
-    std::cout.flush();
-
-    refresh_multiline(lines, pos_y, pos_x);
+    // // Print the prefilled text
+    // for (const auto& line : lines) {
+    //     std::cout << line << std::endl;
+    // }
+    // std::cout.flush();
+    refresh_multiline(lines, height, 0, 0, max_visible_lines);
+    refresh_multiline(lines, height, pos_y, pos_x, max_visible_lines);
 
     // Read input character by character
     while ((ch = getchar()) != '\n') {
         if (ch == 127 || ch == '\b') {  // Handle backspace
             if (pos_x > 0) {
                 lines[pos_y].erase(--pos_x, 1);  // Remove character at cursor
-                refresh_multiline(lines, pos_y, pos_x);
+                refresh_multiline(lines, height, pos_y, pos_x, max_visible_lines);
             } else if (pos_y > 0) {  // Handle backspace at the start of a line (merge with previous line)
                 pos_x = lines[pos_y - 1].length();
                 lines[pos_y - 1] += lines[pos_y];
                 lines.erase(lines.begin() + pos_y);
                 --pos_y;
-                refresh_multiline(lines, pos_y, pos_x);
+                refresh_multiline(lines, height, pos_y, pos_x, max_visible_lines);
             }
         } else if (ch == 27) {  // Escape character (arrow keys or Alt+B/F)
             int key = handle_escape_sequence();
@@ -352,16 +483,16 @@ std::string edit_prefilled_input_multiline(const std::string &prefilled_text) {
             } else if (key == 'A' && pos_y > 0) {  // Up arrow
                 --pos_y;
                 pos_x = std::min(pos_x, lines[pos_y].length());  // Clamp cursor to the current line's length
-                refresh_multiline(lines, pos_y, pos_x);
+                refresh_multiline(lines, height, pos_y, pos_x, max_visible_lines);
             } else if (key == 'B' && pos_y < lines.size() - 1) {  // Down arrow
                 ++pos_y;
                 pos_x = std::min(pos_x, lines[pos_y].length());  // Clamp cursor to the current line's length
-                refresh_multiline(lines, pos_y, pos_x);
+                refresh_multiline(lines, height, pos_y, pos_x, max_visible_lines);
             }
         } else if (ch >= 32 && ch <= 126) {  // Handle printable characters
             lines[pos_y].insert(pos_x, 1, ch);  // Insert character at cursor position
             pos_x++;  // Move cursor forward
-            refresh_multiline(lines, pos_y, pos_x);
+            refresh_multiline(lines, height, pos_y, pos_x, max_visible_lines);
         }
         std::cout.flush();
     }
@@ -495,6 +626,52 @@ size_t choose_from_vector(const std::vector<std::string> &to_choose) {
         } else if (key == 10) { // Enter key
             enable_echo();  // Re-enable echo before returning
             return choice;
+        }
+
+        // Reprint the model list with the updated selection
+        print_vector(to_choose, choice, false);
+    }
+    
+    enable_echo();  // Just in case
+}
+
+
+
+std::pair<size_t, int> choose_from_vector_with_eq(const std::vector<std::string> &to_choose) {
+    std::size_t choice = 0;
+    int key;
+    disable_echo();  // Assuming this function disables input echo in terminal
+
+    // Print the initial model list
+    print_vector(to_choose, choice, true);
+    
+    while (true) {
+        key = console::getchar32();  // Assuming this reads a character input
+        if (key == 27) { // Escape sequence starts with 27 (ESC)
+            key = console::getchar32(); // Skip the '[' character
+            key = console::getchar32(); // Get the actual arrow key
+
+            switch (key) {
+                case 'A': // Up arrow key
+                    if (choice > 0) {
+                        choice--;
+                    }
+                    break;
+                case 'B': // Down arrow key
+                    if (choice < to_choose.size() - 1) {
+                        choice++;
+                    }
+                    break;
+            }
+        } else if (key == 10) { // Enter key
+            enable_echo();  // Re-enable echo before returning
+            return std::make_pair(choice, key);
+        } else if (key == 'e') { // 'e' key
+            enable_echo();  // Re-enable echo before returning
+            return std::make_pair(choice, static_cast<int>(key));
+        } else if (key == 'q') { // 'q' key
+            enable_echo();  // Re-enable echo before returning
+            return std::make_pair(choice, static_cast<int>(key));
         }
 
         // Reprint the model list with the updated selection
