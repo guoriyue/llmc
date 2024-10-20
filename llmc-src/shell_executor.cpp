@@ -28,6 +28,7 @@ std::string exec_command(const std::string& cmd) {
 void edit_exec(std::string output_line, bool no_edit) {
     if (!no_edit) {
         print_centered_message("Edit & Execute", PRINT_LENGTH);
+        printf(">>> ");
         std::string edited_cmd =  edit_prefilled_input(output_line);
         exec_command(edited_cmd);
     } else {

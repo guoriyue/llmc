@@ -261,21 +261,21 @@ int main(int argc, char ** argv) {
     gpt_params params;
     g_params = &params;
     model_manager mm = model_manager();
-    std::string saved_llmc_args_str = mm.get_args("llmc_args_str");
-    std::vector<std::string> saved_llmc_args = split_str(trim(saved_llmc_args_str), ' ');
+    // std::string saved_llmc_args_str = mm.get_args("llmc_args_str");
+    // std::vector<std::string> saved_llmc_args = split_str(trim(saved_llmc_args_str), ' ');
 
-    if (argc == 1) {
-        // no input arguments
-    } else {
-        // // special case, only 1 argument, and it's a prompt
-        // if (argc == 2){
-        //     insert_at_index(argv, argc, (char*)"-p", 1);
-        // }
+    // if (argc == 1) {
+    //     // no input arguments
+    // } else {
+    //     // // special case, only 1 argument, and it's a prompt
+    //     // if (argc == 2){
+    //     //     insert_at_index(argv, argc, (char*)"-p", 1);
+    //     // }
 
-        for (auto it = saved_llmc_args.rbegin(); it != saved_llmc_args.rend(); ++it) {
-            insert_at_index(argv, argc, (char*)it->c_str(), 1);
-        }
-    }
+    //     for (auto it = saved_llmc_args.rbegin(); it != saved_llmc_args.rend(); ++it) {
+    //         insert_at_index(argv, argc, (char*)it->c_str(), 1);
+    //     }
+    // }
     
     if (!gpt_params_parse(argc, argv, params, LLAMA_EXAMPLE_MAIN, print_usage)) {
         return 1;
@@ -337,10 +337,10 @@ int main(int argc, char ** argv) {
         }
     }
 
-    if (params.llmc_save_args) {
-        printf("Saving args %s\n", params.llmc_args_str.c_str());
-        mm.save_args("llmc_args_str", params.llmc_args_str);
-    }
+    // if (params.llmc_save_args) {
+    //     printf("Saving args %s\n", params.llmc_args_str.c_str());
+    //     mm.save_args("llmc_args_str", params.llmc_args_str);
+    // }
 
     if (params.llmc_show_args) {
         mm.show_args();
@@ -1162,7 +1162,7 @@ int main(int argc, char ** argv) {
     // std::string output = output_ss.str();
 
     // std::vector<std::string> output_lines = extract_bash_blocks(output);
-    // printf("\n\n");
+    printf("\n");
     std::vector<std::string> output_lines = extract_suggestions(output_buffer);
     // printf("============ Choose & Execute ============\n");
     if (params.llmc_mode == "loop") {

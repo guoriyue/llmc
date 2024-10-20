@@ -265,14 +265,15 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
         if (arg_to_options.find(arg) == arg_to_options.end()) {
             throw std::invalid_argument(format("error: invalid argument: %s", arg.c_str()));
         }
-        if (arg != "--save-args") {
-            params.llmc_args_str += arg + " ";
-        }
+        
         auto opt = *arg_to_options[arg];
         if (opt.has_value_from_env()) {
             fprintf(stderr, "warn: %s environment variable is set, but will be overwritten by command line argument %s\n", opt.env, arg.c_str());
         }
         try {
+            // if (arg != "--save-args") {
+            //     params.llmc_args_str += arg + " ";
+            // }
             if (opt.handler_void) {
                 opt.handler_void(params);
                 continue;
@@ -281,6 +282,8 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
             // arg with single value
             check_arg(i);
             std::string val = argv[++i];
+            // params.llmc_args_str += val + " ";
+
             if (opt.handler_int) {
                 opt.handler_int(params, std::stoi(val));
                 continue;
@@ -293,6 +296,8 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
             // arg with 2 values
             check_arg(i);
             std::string val2 = argv[++i];
+            // params.llmc_args_str += val2 + " ";
+
             if (opt.handler_str_str) {
                 opt.handler_str_str(params, val, val2);
                 continue;
@@ -2096,13 +2101,13 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
             params.llmc_show_args = true;
         }
     ).set_examples({LLMC_MAIN}));
-    add_opt(llama_arg(
-        {"--save-args"},
-        "Save arguments for frequent future use", // , e.g. '--save-args -c 4096' will save the context size as 4096
-        [](gpt_params & params) {
-            params.llmc_save_args = true;
-        }
-    ).set_examples({LLMC_MAIN}));
+    // add_opt(llama_arg(
+    //     {"--save-args"},
+    //     "Save arguments for frequent future use", // , e.g. '--save-args -c 4096' will save the context size as 4096
+    //     [](gpt_params & params) {
+    //         params.llmc_save_args = true;
+    //     }
+    // ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
         {"--no-explanation"},
         "Disable command explanation",
