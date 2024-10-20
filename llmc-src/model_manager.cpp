@@ -1,6 +1,6 @@
 #include "model_manager.h"
 #include "config.h"
-#include "downloader.h"
+#include "file_manager.h"
 #include "common.h"
 #include "console.h"
 #include "console_manager.h"
@@ -33,8 +33,11 @@ void model_manager::show_args() {
     std::ifstream
         infile(config_path);
     if (!infile.is_open()) {
-        std::cout << "Error: Unable to open the config file." << std::endl;
-        return;
+        // std::cout << "Error: Unable to open the config file." << std::endl;
+        // print_error(("Unable to open the config file " + config_path).c_str());
+        json_file_create(config_path);
+        infile.open(config_path);
+        // return;
     }
     nlohmann::json config_dict;
     infile >> config_dict;  // The >> operator automatically parses the JSON file content
@@ -65,32 +68,56 @@ void model_manager::show_args() {
 //     }
 // }
 
-std::string model_manager::read_model_path() {
+
+bool model_manager::save_args(const std::string& args_key, const std::string& args_value) {
+    // std::string config_path = file_manager::get_cache_directory(CMD_NAME) + "/" + CONFIG_FILE;
+    std::string config_path = fs_get_cache_file(CONFIG_FILE);
+    std::ifstream infile(config_path);
+    
+    if (!infile.is_open()) {
+        // std::cout << "Error: Unable to open the config file." << std::endl;
+        // print_error(("Unable to open the config file " + config_path).c_str());
+        json_file_create(config_path);
+        infile.open(config_path);
+        // return false;
+    }
+    nlohmann::json config_dict;
+    infile >> config_dict;  // The >> operator automatically parses the JSON file content
+    infile.close();  // Close the file after reading
+    config_dict[args_key] = args_value;
+    std::ofstream outfile(config_path);
+    if (outfile.is_open()) {
+        outfile << config_dict.dump(4);  // Pretty print with 4 spaces
+        outfile.close();
+        return true;
+    } else {
+        // std::cout << "Error: Unable to open the config file." << std::endl;
+        print_error(("Unable to open the config file " + config_path).c_str());
+        return false;
+    }
+}
+
+std::string model_manager::get_args(const std::string& args_key) {
     // std::string config_path = file_manager::get_cache_directory(CMD_NAME) + "/" + CONFIG_FILE;
     std::string config_path = fs_get_cache_file(CONFIG_FILE);
     std::ifstream infile(config_path);
     if (!infile.is_open()) {
-        std::cout << "Error: Unable to open the config file."<< std::endl;
+        // std::cout << "Error: Unable to open the config file." << std::endl;
+        // print_warning(("Unable to open the config file " + config_path).c_str());
+        json_file_create(config_path);
+        // infile.open(config_path);
+        return "";
+    }
+    if (file_is_empty(config_path)) {
         return "";
     }
     nlohmann::json config_dict;
     infile >> config_dict;  // The >> operator automatically parses the JSON file content
     infile.close();  // Close the file after reading
-    return config_dict["model_path"];
-}
-
-void model_manager::save_model_path(const std::string& path) {
-    // std::string config_path = file_manager::get_cache_directory(CMD_NAME) + "/" + CONFIG_FILE;
-    std::string config_path = fs_get_cache_file(CONFIG_FILE);
-    std::ofstream outfile(config_path);
-    nlohmann::json config_dict;
-    config_dict["model_path"] = path;
-    if (outfile.is_open()) {
-        outfile << config_dict.dump(4);  // Pretty print with 4 spaces
-        outfile.close();
-    } else {
-        std::cout << "Error: Unable to open the config file." << std::endl;
+    if (config_dict.find(args_key) == config_dict.end()) {
+        return "";
     }
+    return config_dict[args_key];
 }
 
 // std::size_t model_manager::choose_model() {
@@ -135,20 +162,13 @@ std::string model_manager::set_model() {
     // enable_echo();
     if (models_to_choose[chosen] == "custom"){
         std::string custom_model_path;
-        // std::string custom_prompt;
-        
-        // Ask the user for custom model path
-        std::cout << "Please enter the local path to the custom model: \n";
-        // std::getline(std::cin, custom_model_path);
-        // std::cin >> custom_model_path;
-        custom_model_path = edit_prefilled_input("");
+        // std::cout << "Please enter the .gguf path: \n";
+        printf("Please enter the file path (in .gguf format): ");
+        // custom_model_path = edit_prefilled_input("");
+        custom_model_path = get_input();
         custom_model_path = trim(custom_model_path);
-        // bool another_line = console::readline(custom_model_path, false);
-        // std::cout << "Please enter your custom prompt: \n";
-        // // std::getline(std::cin, custom_prompt);
-        // std::cin >> custom_prompt;
-        printf("custom_model_path: %s\n", custom_model_path.c_str());
-        save_model_path(custom_model_path);
+        save_args("model", custom_model_path);
+        printf("Model set to: %s\n", custom_model_path.c_str());
         return custom_model_path;
     } else {
         std::string chosen_model = models_to_choose[chosen];
@@ -159,13 +179,24 @@ std::string model_manager::set_model() {
         std::string file_name = (last_slash != std::string::npos) ? chosen_model_url.substr(last_slash + 1) : chosen_model_url;
     
         std::string chosen_model_path = fs_get_cache_file(file_name);
-        // download the model
-        bool download_model = download_file(chosen_model_url, chosen_model_path);
-        if (!download_model) {
-            std::cout << "Error: Could not download the model." << std::endl;
-            return "";
-        }
-        save_model_path(chosen_model_path);
-        return chosen_model_path;
+        printf("There is already a file at this path. Do you want to overwrite it? (y/n) ");
+
+        do {
+            char choice = getchar();
+            if (choice == 'y') {
+                printf("\n");
+                bool download_model = download_file(chosen_model_url, chosen_model_path);
+                if (!download_model) {
+                    print_error("Could not download the model.");
+                    return "";
+                }
+                save_args("model", chosen_model_path);
+                printf("Model set to: %s\n", chosen_model_path.c_str());
+                return chosen_model_path;
+            } else if (choice == 'n') {
+                printf("\n");
+                return chosen_model_path;
+            }
+        } while (true);
     }
 }

@@ -115,6 +115,17 @@ void move_forward_one_word(const std::string &input, size_t &pos) {
     refresh_line(input, pos);
 }
 
+std::string get_input() {
+    termios orig_termios;
+    tcgetattr(STDIN_FILENO, &orig_termios);
+
+    enable_raw_mode(orig_termios);
+    std::cout.flush();
+    std::string input;
+    console::readline(input, false);
+    disable_raw_mode(orig_termios);
+    return input;
+}
 // Function to allow inline editing of prefilled input with cursor movement
 std::string edit_prefilled_input(const std::string &prefilled_text) {
     std::string input = prefilled_text;
@@ -390,7 +401,7 @@ void print_centered_message(const char* message, int total_length) {
     
     // Print the left side '=' signs
     for (int i = 0; i < half_padding; i++) {
-        printf("=");
+        printf("-");
     }
 
     // Print the message with spaces
@@ -398,66 +409,24 @@ void print_centered_message(const char* message, int total_length) {
 
     // Print the right side '=' signs (adjusting for odd number of total_length)
     for (int i = 0; i < (padding - half_padding); i++) {
-        printf("=");
+        printf("-");
     }
 
     // End the line with a newline character
     printf("\n");
 }
 
+void print_error(const char *message) {
+    // ANSI escape code for red color
+    printf("\033[1;31mError: \033[0m");
+    printf("%s\n", message);
+}
 
-// void print_vector(const std::vector<std::string>& to_choose, std::size_t current_choice, bool first_call_print) {
-//     // Move the cursor up by the number of model lines to overwrite them
-//     if (!first_call_print) {
-//         for (std::size_t i = 0; i < to_choose.size(); ++i) {
-//             std::cout << "    " << "\033[F";
-//         }
-//     }
-//     for (std::size_t i = 0; i < to_choose.size(); ++i) {
-//         if (i == current_choice) {
-//             // Highlight the current choice (reverse video mode)
-//             std::cout << "[>] " << "\033[7m" << to_choose[i] << "\033[0m" << std::endl;
-//         } else {
-//             std::cout << "    " << to_choose[i] << std::endl;
-//         }
-//     }
-// }
-
-// size_t choose_from_vector(const std::vector<std::string> &to_choose) {
-//     std::size_t choice = 0;
-//     int key;
-//     disable_echo();
-//     // Print the initial model list
-//     print_vector(to_choose, choice, true);
-//     while (true) {
-//         key = console::getchar32();
-//         if (key == 27) { // Escape sequence starts with 27 (ESC)
-//             key = console::getchar32(); // Skip the '[' character
-//             key = console::getchar32(); // Get the actual arrow key
-
-//             switch (key) {
-//                 case 'A': // Up arrow key
-//                     if (choice > 0) {
-//                         choice--;
-//                     }
-//                     break;
-//                 case 'B': // Down arrow key
-//                     if (choice < to_choose.size() - 1) {
-//                         choice++;
-//                     }
-//                     break;
-//             }
-//         } else if (key == 10) { // Enter key
-//             enable_echo();
-//             return choice;
-//         }
-
-//         // Reprint the model list with the updated selection
-//         print_vector(to_choose, choice, false);
-//     }
-//     enable_echo();
-// }
-
+void print_warning(const char *message) {
+    // ANSI escape code for yellow color
+    printf("\033[1;33mWarning: \033[0m");
+    printf("%s\n", message);
+}
 
 // Helper function to count the number of lines in a string
 std::size_t count_lines(const std::string& str) {

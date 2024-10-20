@@ -144,7 +144,8 @@ struct gpt_sampler_params {
 
 struct gpt_params {
     int32_t n_predict             =    -1; // new tokens to predict
-    int32_t n_ctx                 =     0; // context size
+    // int32_t n_ctx                 =     0; // context size
+    int32_t n_ctx                 =     4096; // context size
     int32_t n_batch               =  2048; // logical batch size for prompt processing (must be >=32 to use BLAS)
     int32_t n_ubatch              =   512; // physical batch size for prompt processing (must be >=32 to use BLAS)
     int32_t n_keep                =     0; // number of tokens to keep from initial prompt
@@ -348,10 +349,10 @@ struct gpt_params {
     bool llmc_show_explanations = true;
     bool llmc_show_args = false;
     bool llmc_save_args         = false; // save arguments to a file
-    // std::string llmc_default_model = "";
-    // std::string llmc_default_prompt = "";
+    std::string llmc_args_str   = "";    // arguments to save
     bool usage             = false; // print usage
     bool trace             = false; // enable trace mode
+    bool llmc_setup        = false; // setup model
 };
 
 // call once at the start of a program if it uses libcommon

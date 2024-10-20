@@ -49,4 +49,8 @@ size_t choose_from_vector(const std::vector<std::string> &to_choose);
 void print_vector(const std::vector<std::string>& to_choose, std::size_t current_choice, bool first_call_print);
 
 void print_centered_message(const char* message, int total_length);
+
+void print_error(const char *message);
+void print_warning(const char *message);
+std::string get_input();
 #endif // INPUT_MANAGER_H

@@ -6,7 +6,7 @@
 #include "llama.h"
 
 #include "llmc-src/config.h"
-#include "llmc-src/downloader.h"
+#include "llmc-src/file_manager.h"
 #include "llmc-src/model_manager.h"
 #include "llmc-src/console_manager.h"
 #include "llmc-src/output_parser.h"
@@ -155,17 +155,6 @@ static void print_usage(int argc, char ** argv) {
 //     std::cout << formatted << std::endl;
 // }
 
-static bool file_exists(const std::string & path) {
-    std::ifstream f(path.c_str());
-    return f.good();
-}
-
-static bool file_is_empty(const std::string & path) {
-    std::ifstream f;
-    f.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    f.open(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-    return f.tellg() == 0;
-}
 
 static void write_logfile(
     const llama_context * ctx, const gpt_params & params, const llama_model * model,
@@ -284,42 +273,46 @@ int main(int argc, char ** argv) {
     if (params.rope_freq_scale != 0.0) {
         // LOG_WRN("%s: warning: scaling RoPE frequency by %g.\n", __func__, params.rope_freq_scale);
     }
-    // printf("params.model: %s\n", params.model.c_str());
     // // LOG_INF("%s: llama backend init\n", __func__);
 
     model_manager mm = model_manager();
-
     if (params.model == DEFAULT_MODEL_PATH) {
         // users do not explicitly set a model
-        std::string model_path = mm.read_model_path();
-        if (model_path.empty()) {
-            // force to reset the model
-            printf("Setting up the model for llmc\n");
+        // std::string model_path = mm.read_model_path();
+        std::string model_path = mm.get_args("model");
+        if (params.llmc_setup) {
+            print_centered_message("Setting up llmc model", PRINT_LENGTH);
             params.model = mm.set_model();
-        } else if (!file_exists(model_path) || file_is_empty(model_path)) {
-            printf("The model path doesn't exist or is empty. Please set a model first.\n");
+            exit(0);
+        }
+        else if (model_path.empty() || (!file_exists(model_path) || file_is_empty(model_path))) {
+            // force to reset the model
+            print_centered_message("Model not found or invalid. Setting up llmc model", PRINT_LENGTH);
             params.model = mm.set_model();
         } else {
             params.model = model_path;
         }
     }
 
-    // if (params.llmc_save_args) {
-    //     // LOG_INF("%s: saving arguments for frequent future use\n", __func__);
-    //     // LOG_INF("%s: saving arguments for frequent future use\n", __func__);
-    //     // return 0;
-    //     mm.save_args(params);
-    // }
-
+    if (params.llmc_save_args) {
+        mm.save_args("llmc_args_str", params.llmc_args_str);
+    }
     if (params.llmc_show_args) {
         mm.show_args();
         return 0;
     }
     // llmc_reset
     if (params.prompt == "") {
-        printf("Prompt is empty\n");
+        print_error("Please provide a prompt");
         return 0;
     }
+
+    if (params.n_ctx < 4096 && params.n_ctx != 0) {
+        print_error("Context size must be at least 4096");
+        return 0;
+    }
+
+    print_centered_message("Starting llmc", PRINT_LENGTH);
 
     
     // std::string shell_prompt = R"(You are a command line tool helper designed to assist developers in generating accurate and executable shell commands. Given a user request or problem description, generate the appropriate command to solve the issue, and explain each part of the command briefly. Always ensure the solution is correct, efficient, and follows best practices.
@@ -348,9 +341,7 @@ int main(int argc, char ** argv) {
     // params.prompt = "give me a shell command to do this: " + params.prompt;
     // params.system_prompt = shell_prompt;
 
-    // printf("%s", params.prompt.c_str());
     params.prompt = command_prompt + "\n### Instruction: " + params.prompt;
-    // params.system_prompt = command_prompt;
    
 
     llama_backend_init();

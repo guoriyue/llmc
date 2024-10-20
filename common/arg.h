@@ -18,33 +18,29 @@ struct llama_arg {
     const char * env          = nullptr;
     std::string help;
     bool is_sparam = false; // is current arg a sampling param?
-    // void (*handler_void)   (gpt_params & params) = nullptr;
-    // void (*handler_string) (gpt_params & params, const std::string &) = nullptr;
-    // void (*handler_str_str)(gpt_params & params, const std::string &, const std::string &) = nullptr;
-    // void (*handler_int)    (gpt_params & params, int) = nullptr;
-    void (*handler_void)(gpt_params &params, std::unordered_map<std::string, std::string> &modified_args) = nullptr;
-    void (*handler_string)(gpt_params &params, const std::string &, std::unordered_map<std::string, std::string> &modified_args) = nullptr;
-    void (*handler_str_str)(gpt_params &params, const std::string &, const std::string &, std::unordered_map<std::string, std::string> &modified_args) = nullptr;
-    void (*handler_int)(gpt_params &params, int, std::unordered_map<std::string, std::string> &modified_args) = nullptr;
+    void (*handler_void)   (gpt_params & params) = nullptr;
+    void (*handler_string) (gpt_params & params, const std::string &) = nullptr;
+    void (*handler_str_str)(gpt_params & params, const std::string &, const std::string &) = nullptr;
+    void (*handler_int)    (gpt_params & params, int) = nullptr;
 
     llama_arg(
         const std::initializer_list<const char *> & args,
         const char * value_hint,
         const std::string & help,
-        void (*handler)(gpt_params & params, const std::string &, std::unordered_map<std::string, std::string> &modified_args)
+        void (*handler)(gpt_params & params, const std::string &)
     ) : args(args), value_hint(value_hint), help(help), handler_string(handler) {}
 
     llama_arg(
         const std::initializer_list<const char *> & args,
         const char * value_hint,
         const std::string & help,
-        void (*handler)(gpt_params & params, int, std::unordered_map<std::string, std::string> &modified_args)
+        void (*handler)(gpt_params & params, int)
     ) : args(args), value_hint(value_hint), help(help), handler_int(handler) {}
 
     llama_arg(
         const std::initializer_list<const char *> & args,
         const std::string & help,
-        void (*handler)(gpt_params & params, std::unordered_map<std::string, std::string> &modified_args)
+        void (*handler)(gpt_params & params)
     ) : args(args), help(help), handler_void(handler) {}
 
     // support 2 values for arg
@@ -53,40 +49,8 @@ struct llama_arg {
         const char * value_hint,
         const char * value_hint_2,
         const std::string & help,
-        void (*handler)(gpt_params & params, const std::string &, const std::string &, std::unordered_map<std::string, std::string> &modified_args)
+        void (*handler)(gpt_params & params, const std::string &, const std::string &)
     ) : args(args), value_hint(value_hint), value_hint_2(value_hint_2), help(help), handler_str_str(handler) {}
-
-    // llama_arg(
-    //     const std::initializer_list<const char *> & args,
-    //     const char * value_hint,
-    //     const std::string & help,
-    //     void (*handler)(gpt_params & params, const std::string &),
-    //     std::map<std::string, bool>& modified_args
-    // ) : args(args), value_hint(value_hint), help(help), handler_string(handler), modified_args(modified_args) {}
-
-    // llama_arg(
-    //     const std::initializer_list<const char *> & args,
-    //     const char * value_hint,
-    //     const std::string & help,
-    //     void (*handler)(gpt_params & params, int),
-    //     std::map<std::string, bool>& modified_args
-    // ) : args(args), value_hint(value_hint), help(help), handler_int(handler), modified_args(modified_args) {}
-
-    // llama_arg(
-    //     const std::initializer_list<const char *> & args,
-    //     const std::string & help,
-    //     void (*handler)(gpt_params & params),
-    //     std::map<std::string, bool>& modified_args
-    // ) : args(args), help(help), handler_void(handler), modified_args(modified_args) {}
-
-    // llama_arg(
-    //     const std::initializer_list<const char *> & args,
-    //     const char * value_hint,
-    //     const char * value_hint_2,
-    //     const std::string & help,
-    //     void (*handler)(gpt_params & params, const std::string &, const std::string &),
-    //     std::map<std::string, bool>& modified_args
-    // ) : args(args), value_hint(value_hint), value_hint_2(value_hint_2), help(help), handler_str_str(handler), modified_args(modified_args) {}
 
     llama_arg & set_examples(std::initializer_list<enum llama_example> examples);
     llama_arg & set_env(const char * env);

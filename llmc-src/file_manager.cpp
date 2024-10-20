@@ -1,4 +1,4 @@
-#include "downloader.h"
+#include "file_manager.h"
 #include "console_manager.h"
 #include <iostream>
 #include <fstream>
@@ -13,6 +13,29 @@
     #include <termios.h>  // POSIX terminal control
     #include <unistd.h>   // For STDIN_FILENO
 #endif
+
+bool file_exists(const std::string & path) {
+    std::ifstream f(path.c_str());
+    return f.good();
+}
+
+bool file_is_empty(const std::string & path) {
+    std::ifstream f;
+    f.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    f.open(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+    return f.tellg() == 0;
+}
+
+bool file_create(const std::string & path) {
+    std::ofstream f(path.c_str());
+    return f.good();
+}
+
+bool json_file_create(const std::string & path) {
+    std::ofstream f(path.c_str());
+    f << "{}";
+    return f.good();
+}
 
 // Function to display progress bar with speed
 void show_progress_bar(double percentage, double speed) {
@@ -77,10 +100,13 @@ int progress_callback(void* ptr, curl_off_t total, curl_off_t now, curl_off_t, c
 bool download_file(const std::string& url, const std::string& file_path) {
     CURL* curl;
     CURLcode res;
+
     std::ofstream file(file_path, std::ios::binary);
 
     if (!file) {
-        std::cerr << "Error: Could not open file " << file_path << " for writing.\n";
+        // std::cerr << "Error: Could not open file " << file_path << " for writing.\n";
+        // print_error("Could not open file" + file_path + " for writing.");
+        print_error(("Could not open file " + file_path + " for writing.").c_str());
         return false;
     }
 

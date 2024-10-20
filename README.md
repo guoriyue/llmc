@@ -34,6 +34,13 @@ Supported Models
 - Llama 3.2 (3B, 8bit)
 - Custom models: You can provide your own model and system prompt.
 
+
+Touble Shoting
+----------------
+
+ggml_metal_graph_compute: command buffer 1 failed with status 5
+error: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory)
+
 TODO
 ----
 
