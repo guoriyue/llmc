@@ -47,7 +47,7 @@ You can run `llmc` without arguments to explore options:
 Supported Models
 ----------------
 
-llmc comes with support for the following preconfigured models:
+llmc comes with support for the [following preconfigured models](https://huggingface.co/MingfeiGuo/llmc/tree/main):
 
 * codellama-13b.Q8_0
 * qwen2.5-7b-instruct-q8_0
