@@ -1,23 +1,32 @@
 llmc
 ====
 
-llmc is a local inference command-line tool based on llama.cpp that helps generate shell commands from natural language descriptions.
+llmc is a local inference command-line tool powered by llama.cpp that transforms natural language descriptions into executable shell commands.
+
+* Natural Language Command Generation: Simply describe the command you need in plain language, and llmc will generate the appropriate shell command for you.
+* Customizable Models: Choose from a variety of preconfigured models or provide your own for custom workflows.
+* Multiple Modes:
+    * loop mode: Continues to choose and execute commands.
+    * exit mode: Executes a single command and exits.
+* Command Explanation: Optionally provides an explanation of the generated command.
+* Tracing: Enable model tracing to debug and track the execution process.
+
 
 Install
 -------
 
-Build from source:
+To build llmc from source, use the following command:
 
     make llmc
 
 Usage
 -----
 
-To use llmc, provide a prompt describing the shell command:
+To use llmc, provide a natural language description:
 
     llmc "your prompt"
 
-Or, you can run `llmc` to see available options:
+You can run `llmc` without arguments to explore options:
 
 --------------------------------- llmc params ----------------------------------
 -h,    --help, --usage                  Print llmc usage
@@ -34,16 +43,24 @@ Or, you can run `llmc` to see available options:
 Supported Models
 ----------------
 
--     codellama-13b.Q8_0
-    qwen2.5-7b-instruct-q8_0
-    Llama-3.2-3B-Instruct-Q8_0
-[>] Llama-3.2-1B-Instruct-Q8_0
-    custom
-- Custom models: You can provide your own model and system prompt.
+llmc comes with support for the following preconfigured models:
+
+codellama-13b.Q8_0
+qwen2.5-7b-instruct-q8_0
+Llama-3.2-3B-Instruct-Q8_0
+Llama-3.2-1B-Instruct-Q8_0
+
+You can also provide your own model with custom system prompts.
 
 
-Touble Shoting
+Troubleshooting
 ----------------
 
+Common Errors
+
+```bash
 ggml_metal_graph_compute: command buffer 1 failed with status 5
 error: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory)
+```
+
+This typically occurs when the system does not have enough memory to load and run the selected model. To resolve, consider using a smaller model.
