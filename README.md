@@ -66,3 +66,15 @@ error: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory
 ```
 
 This typically occurs when the system does not have enough memory to load and run the selected model. To resolve, consider using a smaller model.
+
+
+Community & Contact
+-------------------------------
+
+Connect on our Discord or WeChat groups to discuss llmc, share feedback, and get support from other users:
+
+[Join the llmc Discord group](https://discord.gg/zG4x6NuT5q)
+
+For any questions or inquiries, feel free to reach out via email:
+
+[Email me](mailto:mingfeiguoo@gmail.com)
