@@ -11,6 +11,7 @@
 #include "llmc-src/console_manager.h"
 #include "llmc-src/output_parser.h"
 #include "llmc-src/shell_executor.h"
+#include "llmc-src/str_parser.h"
 
 #include <iostream>
 #include <string>
@@ -128,6 +129,7 @@ Explanation:
 
 static void print_usage(int argc, char ** argv) {
     (void) argc;
+    (void) argv;
     // LOG("If you'd like to explore more advanced model options, pass --model-help or --model-usage for additional usage instructions.");
     // LOG("\nexample usage:\n");
     // LOG("\n  text generation:     %s -m your_model.gguf -p \"I believe the meaning of life is\" -n 128\n", argv[0]);
@@ -228,33 +230,33 @@ static std::string chat_add_and_format(struct llama_model * model, std::vector<l
     // LOG_DBG("formatted: '%s'\n", formatted.c_str());
     return formatted;
 }
-void insert_at_index(char**& argv, int& argc, const char* new_element, int index) {
-    // Create a new array with one extra space
-    char** new_argv = new char*[argc + 1];
+// void insert_at_index(char**& argv, int& argc, const char* new_element, int index) {
+//     // Create a new array with one extra space
+//     char** new_argv = new char*[argc + 1];
 
-    // Deep copy elements up to the insertion point
-    for (int i = 0; i < index; ++i) {
-        new_argv[i] = new char[std::strlen(argv[i]) + 1];  // Allocate memory for each element
-        std::strcpy(new_argv[i], argv[i]);  // Copy each element
-    }
+//     // Deep copy elements up to the insertion point
+//     for (int i = 0; i < index; ++i) {
+//         new_argv[i] = new char[std::strlen(argv[i]) + 1];  // Allocate memory for each element
+//         std::strcpy(new_argv[i], argv[i]);  // Copy each element
+//     }
 
-    // Insert the new element (allocate memory and copy the string)
-    new_argv[index] = new char[std::strlen(new_element) + 1];
-    std::strcpy(new_argv[index], new_element);
+//     // Insert the new element (allocate memory and copy the string)
+//     new_argv[index] = new char[std::strlen(new_element) + 1];
+//     std::strcpy(new_argv[index], new_element);
 
-    // Deep copy the rest of the original array after the insertion point
-    for (int i = index; i < argc; ++i) {
-        new_argv[i + 1] = new char[std::strlen(argv[i]) + 1];  // Allocate memory for each element
-        std::strcpy(new_argv[i + 1], argv[i]);  // Copy each element
-    }
+//     // Deep copy the rest of the original array after the insertion point
+//     for (int i = index; i < argc; ++i) {
+//         new_argv[i + 1] = new char[std::strlen(argv[i]) + 1];  // Allocate memory for each element
+//         std::strcpy(new_argv[i + 1], argv[i]);  // Copy each element
+//     }
 
-    // Don't deallocate the original argv (as it might be system-provided)
-    // Simply replace argv with new_argv
+//     // Don't deallocate the original argv (as it might be system-provided)
+//     // Simply replace argv with new_argv
 
-    // Update the original pointer and size
-    argv = new_argv;
-    ++argc;  // Increase the argument count
-}
+//     // Update the original pointer and size
+//     argv = new_argv;
+//     ++argc;  // Increase the argument count
+// }
 
 int main(int argc, char ** argv) {
     gpt_params params;

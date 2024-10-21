@@ -1,5 +1,5 @@
-#ifndef INPUT_MANAGER_H
-#define INPUT_MANAGER_H
+#ifndef CONSOLE_MANAGER_H
+#define CONSOLE_MANAGER_H
 
 #include <string>
 #include <termios.h>
@@ -55,4 +55,7 @@ void print_centered_message(const char* message, int total_length);
 void print_error(const char *message);
 void print_warning(const char *message);
 std::string get_input();
-#endif // INPUT_MANAGER_H
+
+std::size_t count_lines(const std::string& str);
+// std::vector<std::string> split_into_lines(const std::string& input);
+#endif // CONSOLE_MANAGER_H
