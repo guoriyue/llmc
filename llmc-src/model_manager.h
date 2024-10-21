@@ -20,11 +20,10 @@ public:
     void init_models() {
 
         models_to_choose.push_back("Llama-3.2-3B-Instruct-Q8_0");
-
-        model_urls.push_back("https://huggingface.co/MingfeiGuo/llmc/resolve/main/Llama-3.2-1B-Instruct-Q8_0.gguf");
-
-        models_to_choose.push_back("Llama-3.2-1B-Instruct-Q8_0");
         model_urls.push_back("https://huggingface.co/MingfeiGuo/llmc/resolve/main/Llama-3.2-3B-Instruct-Q8_0.gguf");
+        
+        models_to_choose.push_back("Llama-3.2-1B-Instruct-Q8_0");
+        model_urls.push_back("https://huggingface.co/MingfeiGuo/llmc/resolve/main/Llama-3.2-1B-Instruct-Q8_0.gguf");
 
         models_to_choose.push_back("qwen2.5-7b-instruct-q8_0");
         model_urls.push_back("https://huggingface.co/MingfeiGuo/llmc/resolve/main/qwen2.5-7b-instruct-q8_0.gguf");
