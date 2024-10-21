@@ -1,6 +1,9 @@
 llmc
 ====
 
+![Demo Video](llmc_demo.gif)
+
+
 llmc is a local inference command-line tool powered by llama.cpp that transforms natural language descriptions into executable shell commands.
 
 * Natural Language Command Generation: Simply describe the command you need in plain language, and llmc will generate the appropriate shell command for you.
