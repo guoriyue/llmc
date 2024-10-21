@@ -28,6 +28,7 @@ To use llmc, provide a natural language description:
 
 You can run `llmc` without arguments to explore options:
 
+```bash
 --------------------------------- llmc params ----------------------------------
 -h,    --help, --usage                  Print llmc usage
 --setup                                 Set up your llmc model: choose or customize
@@ -38,25 +39,23 @@ You can run `llmc` without arguments to explore options:
                                                 - exit: Executes a single command and then stops the program.
 --model-help, --model-usage             Print llmc default model arguments
 --trace                                 Enable tracing for the execution of the default model
-
+```
 
 Supported Models
 ----------------
 
 llmc comes with support for the following preconfigured models:
 
-codellama-13b.Q8_0
-qwen2.5-7b-instruct-q8_0
-Llama-3.2-3B-Instruct-Q8_0
-Llama-3.2-1B-Instruct-Q8_0
+* codellama-13b.Q8_0
+* qwen2.5-7b-instruct-q8_0
+* Llama-3.2-3B-Instruct-Q8_0
+* Llama-3.2-1B-Instruct-Q8_0
 
 You can also provide your own model with custom system prompts.
 
 
 Troubleshooting
 ----------------
-
-Common Errors
 
 ```bash
 ggml_metal_graph_compute: command buffer 1 failed with status 5
