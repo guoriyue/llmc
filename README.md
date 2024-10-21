@@ -17,25 +17,28 @@ To use llmc, provide a prompt describing the shell command:
 
     llmc "your prompt"
 
-Or, you can run `./llmc` to see available options:
+Or, you can run `llmc` to see available options:
 
 --------------------------------- llmc params ----------------------------------
 -h,    --help, --usage                  Print llmc usage
 --setup                                 Set up your llmc model: choose or customize
 --show-args                             Show arguments you saved
---save-args                             Save arguments for frequent future use
 --no-explanation                        Disable command explanation
---no-edit                               Disable editing the chosen command
 --mode {loop,exit}                      Select the mode of operation.
                                                 - loop: Continues to choose and execute commands indefinitely.
                                                 - exit: Executes a single command and then stops the program.
 --model-help, --model-usage             Print llmc default model arguments
 --trace                                 Enable tracing for the execution of the default model
 
+
 Supported Models
 ----------------
 
-- Llama 3.2 (3B, 8bit)
+-     codellama-13b.Q8_0
+    qwen2.5-7b-instruct-q8_0
+    Llama-3.2-3B-Instruct-Q8_0
+[>] Llama-3.2-1B-Instruct-Q8_0
+    custom
 - Custom models: You can provide your own model and system prompt.
 
 

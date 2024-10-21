@@ -191,10 +191,11 @@ std::string model_manager::set_model() {
                     return "";
                 }
                 save_args("model", chosen_model_path);
-                printf("Model set to: %s\n", chosen_model_path.c_str());
+                // printf("Model set to: %s\n", chosen_model_path.c_str());
                 return chosen_model_path;
             } else if (choice == 'n') {
                 printf("\n");
+                save_args("model", chosen_model_path);
                 return chosen_model_path;
             }
         } while (true);

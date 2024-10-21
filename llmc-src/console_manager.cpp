@@ -550,13 +550,13 @@ void print_centered_message(const char* message, int total_length) {
 
 void print_error(const char *message) {
     // ANSI escape code for red color
-    printf("\033[1;31mError: \033[0m");
+    // printf("\033[1;31mError: \033[0m");
     printf("%s\n", message);
 }
 
 void print_warning(const char *message) {
     // ANSI escape code for yellow color
-    printf("\033[1;33mWarning: \033[0m");
+    // printf("\033[1;33mWarning: \033[0m");
     printf("%s\n", message);
 }
 
