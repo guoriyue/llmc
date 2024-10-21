@@ -10,6 +10,7 @@
 #include "config.h"
 
 std::string exec_command(const std::string& cmd) {
+    print_centered_message("Executing command", PRINT_LENGTH);
     std::array<char, 128> buffer;
     std::string result;
 
@@ -42,7 +43,8 @@ void edit_exec(std::string output_line, bool edit) {
     }
 }
 void choose_edit_exec(std::vector<std::string>& output_lines) {
-    print_centered_message("Enter: execute | e: edit | q: quit", PRINT_LENGTH);
+    // print_centered_message("Enter: execute | e: edit | q: quit", PRINT_LENGTH);
+    print_centered_message("↵: execute | e: edit | q: quit", PRINT_LENGTH);
     std::pair<size_t, int> chosen_cmd = choose_from_vector_with_eq(output_lines);
     if (chosen_cmd.second == 10) {
         edit_exec(output_lines[chosen_cmd.first], false);

@@ -249,13 +249,14 @@ static bool gpt_params_parse_ex(int argc, char ** argv, gpt_params_context & ctx
     };
     // check if argv[1] is an arg or a value
     
-    // int argc_start_idx = (argc > 1 && argv[1][0] != '-') ? 2 : 1;
-    // // allow user to pass prompt as first argument
-    // if (argc_start_idx == 2) {
-    //     ctx_arg.params.prompt = argv[1];
-    // }
+    int argc_start_idx = (argc > 1 && argv[1][0] != '-') ? 2 : 1;
+    // allow user to pass prompt as first argument
+    if (argc_start_idx == 2) {
+        ctx_arg.params.prompt = argv[1];
+    }
+
     params.llmc_args_str = "";
-    for (int i = 1; i < argc; i++) {
+    for (int i = argc_start_idx; i < argc; i++) {
         const std::string arg_prefix = "--";
 
         std::string arg = argv[i];
