@@ -137,26 +137,6 @@ static void print_usage(int argc, char ** argv) {
     // LOG("\n");
 }
 
-// void render_markdown(const std::string& markdown) {
-//     std::string formatted = markdown;
-
-//     // Bold: **text** or __text__
-//     formatted = std::regex_replace(formatted, std::regex(R"(\*\*(.*?)\*\*)"), "\033[1m$1\033[0m");
-//     formatted = std::regex_replace(formatted, std::regex(R"(__([^_]+)__)"), "\033[1m$1\033[0m");
-
-//     // Italic: *text* or _text_
-//     formatted = std::regex_replace(formatted, std::regex(R"(\*(.*?)\*)"), "\033[3m$1\033[0m");
-//     formatted = std::regex_replace(formatted, std::regex(R"(_([^_]+)_)"), "\033[3m$1\033[0m");
-
-//     // Headings: #, ##, ###...
-//     formatted = std::regex_replace(formatted, std::regex(R"(### (.*))"), "\033[1m\033[4m$1\033[0m");
-//     formatted = std::regex_replace(formatted, std::regex(R"(## (.*))"), "\033[1m$1\033[0m");
-//     formatted = std::regex_replace(formatted, std::regex(R"(# (.*))"), "\033[1m\033[7m$1\033[0m");
-
-//     std::cout << formatted << std::endl;
-// }
-
-
 static void write_logfile(
     const llama_context * ctx, const gpt_params & params, const llama_model * model,
     const std::vector<llama_token> & input_tokens, const std::string & output,
@@ -165,7 +145,7 @@ static void write_logfile(
     if (params.logdir.empty()) {
         return;
     }
-
+    
     const std::string timestamp = string_get_sortable_timestamp();
 
     const bool success = fs_create_directory_with_parents(params.logdir);

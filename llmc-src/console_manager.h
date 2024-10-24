@@ -3,6 +3,7 @@
 
 #include <string>
 #include <termios.h>
+#include <vector>
 
 // Function declarations
 
