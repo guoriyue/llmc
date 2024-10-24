@@ -20,6 +20,7 @@
 #include <ncurses.h>
 #include <vector>
 #include <string>
+#include <vector>
 
 #ifdef _WIN32
     #include <conio.h>  // Windows specific for _getch()
@@ -70,9 +71,9 @@ void disable_raw_mode(termios &orig_termios) {
 
 // Handle special keys like arrow keys
 int handle_escape_sequence() {
-    int ch = getchar(); // This should be '[' for arrow keys, or 'b'/'f' for Alt+B/Alt+F
+    int ch = console::getchar32(); // This should be '[' for arrow keys, or 'b'/'f' for Alt+B/Alt+F
     if (ch == '[') {
-        ch = getchar(); // Now read the actual direction
+        ch = console::getchar32(); // Now read the actual direction
         switch (ch) {
             case 'A': return 'A'; // Up arrow (not used in this case)
             case 'B': return 'B'; // Down arrow (not used in this case)
@@ -145,7 +146,7 @@ std::string edit_prefilled_input(const std::string &prefilled_text) {
     std::cout.flush();
 
     // Read input character by character
-    while ((ch = getchar()) != '\n') {
+    while ((ch = console::getchar32()) != '\n') {
         if (ch == 127 || ch == '\b') {  // Handle backspace
             if (pos > 0) {
                 input.erase(--pos, 1);  // Remove character at cursor
@@ -260,7 +261,7 @@ std::string edit_prefilled_input_multiline(const std::string &prefilled_text) {
     refresh_multiline(lines, height, pos_y, pos_x, max_visible_lines);
 
     // Read input character by character
-    while ((ch = getchar()) != '\n') {
+    while ((ch = console::getchar32()) != '\n') {
         if (ch == 127 || ch == '\b') {  // Handle backspace
             if (pos_x > 0) {
                 lines[pos_y].erase(--pos_x, 1);  // Remove character at cursor

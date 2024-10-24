@@ -1116,7 +1116,7 @@ static bool llama_download_file(const std::string & url, const std::string & pat
 
     // Check if the file already exists locally
     struct stat model_file_info;
-    auto file_exists = (stat(path.c_str(), &model_file_info) == 0);
+    auto file_exists_ = (stat(path.c_str(), &model_file_info) == 0);
 
     // If the file exists, check its JSON metadata companion file.
     std::string metadata_path = path + ".json";
@@ -1124,7 +1124,7 @@ static bool llama_download_file(const std::string & url, const std::string & pat
     std::string etag;
     std::string last_modified;
 
-    if (file_exists) {
+    if (file_exists_) {
         // Try and read the JSON metadata file (note: stream autoclosed upon exiting this block).
         std::ifstream metadata_in(metadata_path);
         if (metadata_in.good()) {
@@ -1202,7 +1202,7 @@ static bool llama_download_file(const std::string & url, const std::string & pat
         }
     }
 
-    bool should_download = !file_exists || force_download;
+    bool should_download = !file_exists_ || force_download;
     if (!should_download) {
         if (!etag.empty() && etag != headers.etag) {
             LOG_WRN("%s: ETag header is different (%s != %s): triggering a new download\n", __func__, etag.c_str(), headers.etag.c_str());
@@ -1214,7 +1214,7 @@ static bool llama_download_file(const std::string & url, const std::string & pat
     }
     if (should_download) {
         std::string path_temporary = path + ".downloadInProgress";
-        if (file_exists) {
+        if (file_exists_) {
             LOG_WRN("%s: deleting previous downloaded file: %s\n", __func__, path.c_str());
             if (remove(path.c_str()) != 0) {
                 LOG_ERR("%s: unable to delete file: %s\n", __func__, path.c_str());
