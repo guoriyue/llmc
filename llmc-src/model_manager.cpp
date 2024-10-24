@@ -179,9 +179,7 @@ std::string model_manager::set_model() {
         std::string file_name = (last_slash != std::string::npos) ? chosen_model_url.substr(last_slash + 1) : chosen_model_url;
         
         std::string chosen_model_path = fs_get_cache_file(file_name);
-        printf("Chosen model: %s\n", chosen_model_path.c_str());
         bool file_exists_ = file_exists(chosen_model_path);
-        printf("File exists: %d\n", file_exists_);
         if (!file_exists_) {
             printf("model does not exist\n");
             bool download_model = download_file(chosen_model_url, chosen_model_path);
@@ -196,7 +194,7 @@ std::string model_manager::set_model() {
             printf("There is already a file at this path. Do you want to overwrite it? (y/n) ");
 
             do {
-                char choice = getchar();
+                char choice = console::getchar32();
                 if (choice == 'y') {
                     printf("\n");
                     bool download_model = download_file(chosen_model_url, chosen_model_path);
