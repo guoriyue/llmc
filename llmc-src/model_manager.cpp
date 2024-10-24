@@ -174,30 +174,45 @@ std::string model_manager::set_model() {
         std::string chosen_model = models_to_choose[chosen];
         std::string chosen_model_url = model_urls[chosen];
         size_t last_slash = chosen_model_url.find_last_of('/');
-    
+
         // Get the substring after the last '/'
         std::string file_name = (last_slash != std::string::npos) ? chosen_model_url.substr(last_slash + 1) : chosen_model_url;
-    
+        
         std::string chosen_model_path = fs_get_cache_file(file_name);
-        printf("There is already a file at this path. Do you want to overwrite it? (y/n) ");
-
-        do {
-            char choice = getchar();
-            if (choice == 'y') {
-                printf("\n");
-                bool download_model = download_file(chosen_model_url, chosen_model_path);
-                if (!download_model) {
-                    print_error("Could not download the model.");
-                    return "";
-                }
-                save_args("model", chosen_model_path);
-                // printf("Model set to: %s\n", chosen_model_path.c_str());
-                return chosen_model_path;
-            } else if (choice == 'n') {
-                printf("\n");
-                save_args("model", chosen_model_path);
-                return chosen_model_path;
+        printf("Chosen model: %s\n", chosen_model_path.c_str());
+        bool file_exists_ = file_exists(chosen_model_path);
+        printf("File exists: %d\n", file_exists_);
+        if (!file_exists_) {
+            printf("model does not exist\n");
+            bool download_model = download_file(chosen_model_url, chosen_model_path);
+            if (!download_model) {
+                print_error("Could not download the model.");
+                return "";
             }
-        } while (true);
+            save_args("model", chosen_model_path);
+            return chosen_model_path;
+        } else {
+            // file exists
+            printf("There is already a file at this path. Do you want to overwrite it? (y/n) ");
+
+            do {
+                char choice = getchar();
+                if (choice == 'y') {
+                    printf("\n");
+                    bool download_model = download_file(chosen_model_url, chosen_model_path);
+                    if (!download_model) {
+                        print_error("Could not download the model.");
+                        return "";
+                    }
+                    save_args("model", chosen_model_path);
+                    // printf("Model set to: %s\n", chosen_model_path.c_str());
+                    return chosen_model_path;
+                } else if (choice == 'n') {
+                    printf("\n");
+                    save_args("model", chosen_model_path);
+                    return chosen_model_path;
+                }
+            } while (true);
+        }
     }
 }

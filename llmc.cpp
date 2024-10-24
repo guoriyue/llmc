@@ -299,6 +299,10 @@ int main(int argc, char ** argv) {
     }
     // // LOG_INF("%s: llama backend init\n", __func__);
 
+    if (params.llmc_show_args) {
+        mm.show_args();
+        return 0;
+    }
     
     if (params.model == DEFAULT_MODEL_PATH) {
         // users do not explicitly set a model
@@ -323,10 +327,6 @@ int main(int argc, char ** argv) {
     //     mm.save_args("llmc_args_str", params.llmc_args_str);
     // }
 
-    if (params.llmc_show_args) {
-        mm.show_args();
-        return 0;
-    }
     // llmc_reset
     if (params.prompt == "") {
         print_error("Please provide a prompt");

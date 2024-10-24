@@ -54,13 +54,13 @@ void show_progress_bar(double percentage, double speed) {
 }
 
 // Callback function to write the downloaded data to a file
-size_t write_data(void* buffer, size_t size, size_t nmemb, void* userp) {
+static size_t write_data(void* buffer, size_t size, size_t nmemb, void* userp) {
     std::ofstream* ofs = static_cast<std::ofstream*>(userp);
     ofs->write(static_cast<char*>(buffer), size * nmemb);
     return size * nmemb;
 }
 
-int progress_callback(void* ptr, curl_off_t total, curl_off_t now, curl_off_t, curl_off_t) {
+static int progress_callback(void* ptr, curl_off_t total, curl_off_t now, curl_off_t, curl_off_t) {
     static auto last_update_time = std::chrono::steady_clock::now(); // Track time of the last update
     static curl_off_t prev_downloaded = 0;
     static double accumulated_time = 0.0; // To accumulate time for more stable speed calculation
