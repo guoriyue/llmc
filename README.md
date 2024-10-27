@@ -1,7 +1,7 @@
 llmc
 ====
 
-![Demo Video](llmc_demo.gif)
+![Demo Video](llmc_demo_1027.gif)
 
 
 llmc is a local inference command-line tool powered by llama.cpp that transforms natural language descriptions into executable shell commands.

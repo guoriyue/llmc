@@ -32,6 +32,7 @@ public:
         model_urls.push_back("https://huggingface.co/MingfeiGuo/llmc/resolve/main/codellama-13b.Q8_0.gguf");
 
         models_to_choose.push_back("custom");
+        // openbmb/MiniCPM-V-2_6-gguf
     }
 
     std::string set_model();
