@@ -367,7 +367,7 @@ static void gpt_params_print_usage(gpt_params_context & ctx_arg) {
         }
     }
     // printf("----- llmc params -----\n\n");
-    print_centered_message_args("llmc params", PRINT_LENGTH_ARGS);
+    print_centered_message_args("LangCommand params", PRINT_LENGTH_ARGS);
     print_options(llmc_options);
     if (ctx_arg.params.model_usage) {
         // printf("----- common params -----\n\n");
@@ -2076,14 +2076,14 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     ).set_env("LLAMA_LOG_TIMESTAMPS"));
     add_opt(llama_arg(
         {"-h", "--help", "--usage"},
-        "Print llmc usage",
+        "Print LangCommand usage",
         [](gpt_params & params) {
             params.usage = true;
         }
     ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
         {"--setup"},
-        "Set up your llmc model: choose or customize",
+        "Set up your LangCommand model: choose or customize",
         [](gpt_params & params) {
             params.llmc_setup = true;
         }
@@ -2136,7 +2136,7 @@ gpt_params_context gpt_params_parser_init(gpt_params & params, llama_example ex,
     ).set_examples({LLMC_MAIN}));
     add_opt(llama_arg(
         {"--model-help", "--model-usage"},
-        "Print llmc default model arguments",
+        "Print LangCommand default model arguments",
         [](gpt_params & params) {
             params.model_usage = true;
             params.usage = true;

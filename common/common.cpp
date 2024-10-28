@@ -800,7 +800,7 @@ std::string fs_get_cache_directory() {
         cache_directory = std::getenv("LOCALAPPDATA");
 #endif // __linux__
         cache_directory = ensure_trailing_slash(cache_directory);
-        cache_directory += "llmc";
+        cache_directory += "LangCommand";
     }
     return ensure_trailing_slash(cache_directory);
 }

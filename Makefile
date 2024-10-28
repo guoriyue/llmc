@@ -1,6 +1,8 @@
 # Define the default target now so that it is always the first target
 BUILD_TARGETS = \
-	llmc \
+	lac \
+	# llmc \
+	# llmf \
 	# llama-gguf-split \
 	# libllava.a \
 	# llama-baby-llama \
@@ -1256,7 +1258,7 @@ clean:
 # Helper function that replaces .c, .cpp, and .cu file endings with .o:
 GET_OBJ_FILE = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cu,%.o,$(1))))
 
-LLMC_OBJ = $(patsubst %.cpp,%.o,$(wildcard llmc-src/*.cpp))
+LLMC_OBJ = $(patsubst %.cpp,%.o,$(wildcard lang-cli-src/*.cpp))
 
 LLMC_OBJ_ALL = $(OBJ_GGML) $(OBJ_LLAMA) $(OBJ_COMMON) $(LLMC_OBJ)
 # LLMC_OBJ = $(patsubst %.cpp,%.o,$(wildcard llmc-src/*.cpp))
@@ -1264,11 +1266,15 @@ LLMC_OBJ_ALL = $(OBJ_GGML) $(OBJ_LLAMA) $(OBJ_COMMON) $(LLMC_OBJ)
 # LLMC_OBJ_ALL = $(OBJ_GGML) $(OBJ_LLAMA) $(OBJ_COMMON)
 LLMC_FLAGS = -lcurl -lreadline -lncurses
 
-llmc: llmc.cpp \
+lac: lac.cpp \
 	$(LLMC_OBJ_ALL)
 	$(CXX) $(CXXFLAGS) -c $< -o $(call GET_OBJ_FILE, $<)
 	$(CXX) $(CXXFLAGS) $(filter-out %.h $<,$^) $(call GET_OBJ_FILE, $<) -o $@ $(LDFLAGS) $(LLMC_FLAGS)
 
+# llmf: llmf.cpp \
+# 	$(LLMC_OBJ_ALL)
+# 	$(CXX) $(CXXFLAGS) -c $< -o $(call GET_OBJ_FILE, $<)
+# 	$(CXX) $(CXXFLAGS) $(filter-out %.h $<,$^) $(call GET_OBJ_FILE, $<) -o $@ $(LDFLAGS) $(LLMC_FLAGS)
 
 llama-cli: examples/main/main.cpp \
 	$(OBJ_ALL)
